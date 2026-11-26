@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Check, Moon, Palette, Sun } from 'lucide-react';
+import { Check, ChevronDown, Moon, Palette, Sun } from 'lucide-react';
 import { THEMES, ThemeId } from '../types/theme';
 
 interface ThemeSwitcherProps {
@@ -42,7 +42,7 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({
         type="button"
         onClick={onToggleDarkMode}
         aria-label={isDark ? 'تغییر به حالت روشن' : 'تغییر به حالت تیره'}
-        className="inline-flex h-9 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors whitespace-nowrap"
+        className="inline-flex h-9 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors hover:bg-[var(--bg-hover)] whitespace-nowrap"
         style={{
           borderColor: 'var(--border-subtle)',
           backgroundColor: 'var(--bg-surface)',
@@ -59,7 +59,7 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="listbox"
-        className="inline-flex h-9 items-center gap-2 rounded-md border px-2.5 text-xs font-medium transition-colors whitespace-nowrap"
+        className="inline-flex h-9 items-center gap-2 rounded-md border px-2.5 text-xs font-medium transition-colors hover:bg-[var(--bg-hover)] whitespace-nowrap"
         style={{
           borderColor: open ? 'var(--accent)' : 'var(--border-subtle)',
           backgroundColor: 'var(--bg-surface)',
@@ -77,13 +77,20 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({
             />
           ))}
         </span>
+        <ChevronDown
+          className="h-3.5 w-3.5 transition-transform duration-150"
+          style={{
+            color: open ? 'var(--accent)' : 'var(--text-muted)',
+            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+          }}
+        />
       </button>
 
       {open && (
         <div
           role="listbox"
           aria-label="انتخاب تم ظاهری"
-          className="absolute top-11 left-0 z-40 w-64 max-w-[calc(100vw-2rem)] rounded-lg border p-1.5 shadow-lg"
+          className="absolute top-11 left-0 z-50 w-64 max-w-[calc(100vw-2rem)] rounded-lg border p-1.5 shadow-xl"
           style={{
             borderColor: 'var(--border-strong)',
             backgroundColor: 'var(--bg-surface)',
@@ -108,15 +115,17 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({
                     onSelectTheme(item.id);
                     setOpen(false);
                   }}
-                  className="flex w-full items-center justify-between gap-3 rounded-md px-2.5 py-2 text-right transition-colors"
+                  className="flex w-full items-center justify-between gap-3 rounded-md px-2.5 py-2 text-right transition-colors hover:bg-[var(--bg-hover)]"
                   style={{
-                    backgroundColor: selected ? 'var(--accent-soft)' : 'transparent',
+                    backgroundColor: selected ? 'var(--accent-soft)' : undefined,
                     color: 'var(--text-primary)',
                   }}
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5 text-xs font-semibold">
-                      <span>{item.nameFa}</span>
+                      <span style={{ color: selected ? 'var(--accent)' : 'var(--text-primary)' }}>
+                        {item.nameFa}
+                      </span>
                       {selected && (
                         <Check className="h-3.5 w-3.5" style={{ color: 'var(--accent)' }} />
                       )}

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Scale } from 'lucide-react';
 import { toPersianDigits } from '../data/guideData';
+import { ThemedCheckbox, ThemedSelect } from './ui/ThemedControls';
 
 interface ModelPricing {
   id: string;
@@ -238,24 +239,20 @@ export const CostCalculator: React.FC = () => {
           >
             مدل OpenAI
           </label>
-          <select
+          <ThemedSelect
             id="openai-model-select"
-            dir="ltr"
+            ariaLabel="انتخاب مدل OpenAI"
             value={selectedOpenAIId}
-            onChange={(e) => setSelectedOpenAIId(e.target.value)}
-            className="h-9 w-full rounded border px-2.5 font-mono text-xs font-semibold outline-none"
-            style={{
-              borderColor: 'var(--border-strong)',
-              backgroundColor: 'var(--bg-canvas)',
-              color: 'var(--text-primary)',
-            }}
-          >
-            {OPENAI_MODELS.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.id} (${m.inputPer1M}/${m.outputPer1M})
-              </option>
-            ))}
-          </select>
+            onChange={setSelectedOpenAIId}
+            accentColor="var(--openai-accent)"
+            softBg="var(--openai-soft)"
+            options={OPENAI_MODELS.map((m) => ({
+              value: m.id,
+              label: m.id,
+              meta: `$${m.inputPer1M}/$${m.outputPer1M}`,
+              description: m.tier,
+            }))}
+          />
           <p className="mt-1 text-[11px]" style={{ color: 'var(--text-muted)' }}>
             {estimates.openaiRow.tier}
           </p>
@@ -270,24 +267,20 @@ export const CostCalculator: React.FC = () => {
           >
             مدل Google Gemini
           </label>
-          <select
+          <ThemedSelect
             id="google-model-select"
-            dir="ltr"
+            ariaLabel="انتخاب مدل Google Gemini"
             value={selectedGoogleId}
-            onChange={(e) => setSelectedGoogleId(e.target.value)}
-            className="h-9 w-full rounded border px-2.5 font-mono text-xs font-semibold outline-none"
-            style={{
-              borderColor: 'var(--border-strong)',
-              backgroundColor: 'var(--bg-canvas)',
-              color: 'var(--text-primary)',
-            }}
-          >
-            {GOOGLE_MODELS.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.id} (${m.inputPer1M}/${m.outputPer1M})
-              </option>
-            ))}
-          </select>
+            onChange={setSelectedGoogleId}
+            accentColor="var(--google-accent)"
+            softBg="var(--google-soft)"
+            options={GOOGLE_MODELS.map((m) => ({
+              value: m.id,
+              label: m.id,
+              meta: `$${m.inputPer1M}/$${m.outputPer1M}`,
+              description: m.tier,
+            }))}
+          />
           <p className="mt-1 text-[11px]" style={{ color: 'var(--text-muted)' }}>
             {estimates.googleRow.tier}
           </p>
@@ -326,9 +319,9 @@ export const CostCalculator: React.FC = () => {
             value={Math.min(inputTokens, 100_000)}
             onChange={(e) => setInputTokens(Number(e.target.value))}
             aria-label="اسلایدر توکن ورودی"
-            className="mt-1.5 w-full accent-[var(--accent)]"
+            className="editorial-range mt-2 w-full"
           />
-          <p className="text-[10.5px] tabular-nums" style={{ color: 'var(--text-muted)' }}>
+          <p className="mt-1 text-[10.5px] tabular-nums" style={{ color: 'var(--text-muted)' }}>
             حدود {toPersianDigits(estimatedPdfPages)} صفحه PDF
           </p>
         </div>
@@ -366,9 +359,9 @@ export const CostCalculator: React.FC = () => {
             value={Math.min(outputTokens, 16_000)}
             onChange={(e) => setOutputTokens(Number(e.target.value))}
             aria-label="اسلایدر توکن خروجی"
-            className="mt-1.5 w-full accent-[var(--accent)]"
+            className="editorial-range mt-2 w-full"
           />
-          <p className="text-[10.5px]" style={{ color: 'var(--text-muted)' }}>
+          <p className="mt-1 text-[10.5px]" style={{ color: 'var(--text-muted)' }}>
             شامل توکن استدلال
           </p>
         </div>
@@ -408,9 +401,9 @@ export const CostCalculator: React.FC = () => {
             value={Math.min(monthlyRequests, 200_000)}
             onChange={(e) => setMonthlyRequests(Math.max(1, Number(e.target.value)))}
             aria-label="اسلایدر تعداد درخواست"
-            className="mt-1.5 w-full accent-[var(--accent)]"
+            className="editorial-range mt-2 w-full"
           />
-          <p className="text-[10.5px] tabular-nums" style={{ color: 'var(--text-muted)' }}>
+          <p className="mt-1 text-[10.5px] tabular-nums" style={{ color: 'var(--text-muted)' }}>
             {monthlyRequests === 1 ? 'محاسبه تک‌درخواست' : 'دوره ماهانه'}
           </p>
         </div>
@@ -432,7 +425,7 @@ export const CostCalculator: React.FC = () => {
               value={cacheHitRate}
               onChange={(e) => setCacheHitRate(Number(e.target.value))}
               aria-label="نرخ برخورد کش"
-              className="w-36 accent-[var(--accent)]"
+              className="editorial-range w-36"
             />
             <span
               dir="ltr"
@@ -443,17 +436,11 @@ export const CostCalculator: React.FC = () => {
             </span>
           </div>
 
-          <label className="flex cursor-pointer items-center gap-2 text-xs font-medium">
-            <input
-              type="checkbox"
-              checked={useBatch}
-              onChange={(e) => setUseBatch(e.target.checked)}
-              className="h-4 w-4 accent-[var(--accent)]"
-            />
-            <span style={{ color: 'var(--text-primary)' }}>
-              فعال‌سازی Batch API (۵۰٪ تخفیف هر دو سرویس‌دهنده)
-            </span>
-          </label>
+          <ThemedCheckbox
+            checked={useBatch}
+            onChange={setUseBatch}
+            label="فعال‌سازی Batch API (۵۰٪ تخفیف هر دو سرویس‌دهنده)"
+          />
         </div>
       </div>
 

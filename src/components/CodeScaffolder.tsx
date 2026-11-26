@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Check, Copy, Download, RotateCcw } from 'lucide-react';
 import { highlightCodeLine } from '../utils/syntaxHighlighter';
+import { ThemedSelect } from './ui/ThemedControls';
 
 interface ScaffoldOptions {
   systemPrompt: boolean;
@@ -405,59 +406,57 @@ export const CodeScaffolder: React.FC = () => {
         className="flex flex-wrap items-center gap-4 border-y py-3 text-xs"
         style={{ borderColor: 'var(--border-subtle)' }}
       >
-        <label className="flex items-center gap-2">
-          <span className="font-semibold" style={{ color: 'var(--openai-accent)' }}>
+        <div className="flex items-center gap-2">
+          <span className="font-semibold whitespace-nowrap" style={{ color: 'var(--openai-accent)' }}>
             مدل OpenAI:
           </span>
-          <select
+          <ThemedSelect
+            ariaLabel="انتخاب مدل OpenAI"
             value={options.openaiModel}
-            onChange={(e) =>
+            onChange={(val) =>
               setOptions((prev) => ({
                 ...prev,
-                openaiModel: e.target.value as ScaffoldOptions['openaiModel'],
+                openaiModel: val as ScaffoldOptions['openaiModel'],
               }))
             }
-            dir="ltr"
-            className="rounded border px-2 py-1 font-mono text-xs focus:outline-none"
-            style={{
-              borderColor: 'var(--border-subtle)',
-              backgroundColor: 'var(--bg-surface)',
-              color: 'var(--text-primary)',
-            }}
-          >
-            <option value="gpt-6-luna">gpt-6-luna</option>
-            <option value="gpt-6.1-terra">gpt-6.1-terra</option>
-            <option value="gpt-6.2-sol">gpt-6.2-sol</option>
-            <option value="gpt-6.2-astra">gpt-6.2-astra</option>
-          </select>
-        </label>
+            accentColor="var(--openai-accent)"
+            softBg="var(--openai-soft)"
+            triggerBg="var(--bg-surface)"
+            className="w-48"
+            options={[
+              { value: 'gpt-6-luna', label: 'gpt-6-luna', description: 'اقتصادی حجم بالا' },
+              { value: 'gpt-6.1-terra', label: 'gpt-6.1-terra', description: 'بینایی و OCR' },
+              { value: 'gpt-6.2-sol', label: 'gpt-6.2-sol', description: 'متعادل کد و ایجنت' },
+              { value: 'gpt-6.2-astra', label: 'gpt-6.2-astra', description: 'استدلال مرزی' },
+            ]}
+          />
+        </div>
 
-        <label className="flex items-center gap-2">
-          <span className="font-semibold" style={{ color: 'var(--google-accent)' }}>
+        <div className="flex items-center gap-2">
+          <span className="font-semibold whitespace-nowrap" style={{ color: 'var(--google-accent)' }}>
             مدل Gemini:
           </span>
-          <select
+          <ThemedSelect
+            ariaLabel="انتخاب مدل Gemini"
             value={options.googleModel}
-            onChange={(e) =>
+            onChange={(val) =>
               setOptions((prev) => ({
                 ...prev,
-                googleModel: e.target.value as ScaffoldOptions['googleModel'],
+                googleModel: val as ScaffoldOptions['googleModel'],
               }))
             }
-            dir="ltr"
-            className="rounded border px-2 py-1 font-mono text-xs focus:outline-none"
-            style={{
-              borderColor: 'var(--border-subtle)',
-              backgroundColor: 'var(--bg-surface)',
-              color: 'var(--text-primary)',
-            }}
-          >
-            <option value="gemini-3.8-flash">gemini-3.8-flash</option>
-            <option value="gemini-4-hydrogen">gemini-4-hydrogen</option>
-            <option value="gemini-4-carbon">gemini-4-carbon</option>
-            <option value="gemini-4-neon">gemini-4-neon</option>
-          </select>
-        </label>
+            accentColor="var(--google-accent)"
+            softBg="var(--google-soft)"
+            triggerBg="var(--bg-surface)"
+            className="w-52"
+            options={[
+              { value: 'gemini-3.8-flash', label: 'gemini-3.8-flash', description: 'فلش فوق‌سریع' },
+              { value: 'gemini-4-hydrogen', label: 'gemini-4-hydrogen', description: 'روزمره سریع ۱M' },
+              { value: 'gemini-4-carbon', label: 'gemini-4-carbon', description: 'استدلالی مرزی' },
+              { value: 'gemini-4-neon', label: 'gemini-4-neon', description: 'پرچم‌دار دقیق' },
+            ]}
+          />
+        </div>
       </div>
 
       {/* Generated Dual Code Output */}

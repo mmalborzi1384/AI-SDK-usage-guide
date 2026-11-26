@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowUp,
-  CheckSquare,
+  Check,
   ChevronDown,
   ChevronUp,
   Columns2,
@@ -11,7 +11,6 @@ import {
   Minimize2,
   Rows3,
   Search,
-  Square,
   Type,
   X,
 } from 'lucide-react';
@@ -513,7 +512,7 @@ export default function App() {
         {!focusMode && (
           <aside
             aria-label="فهرست مطالب راهنما"
-            className="no-print hidden lg:sticky lg:top-14 lg:block lg:h-[calc(100vh-3.5rem)] lg:w-76 lg:shrink-0 lg:overflow-y-auto lg:border-l lg:px-6"
+            className="no-print code-scroll hidden lg:sticky lg:top-14 lg:block lg:h-[calc(100vh-3.5rem)] lg:w-76 lg:shrink-0 lg:overflow-y-auto lg:border-l lg:px-6"
             style={{ borderColor: 'var(--border-subtle)' }}
           >
             <TocSidebar
@@ -1138,18 +1137,25 @@ export default function App() {
                           onClick={() => toggleTipCheck(tip.id)}
                           aria-pressed={checked}
                           aria-label={`تیک زدن ${tip.title}`}
-                          className="no-print shrink-0 transition-colors"
+                          className="no-print flex h-5 w-5 shrink-0 items-center justify-center rounded-[4px] border transition-all duration-150"
                           style={{
-                            color: checked
+                            borderColor: checked
                               ? 'var(--openai-accent)'
-                              : 'var(--text-muted)',
+                              : 'var(--border-strong)',
+                            backgroundColor: checked
+                              ? 'var(--openai-accent)'
+                              : 'var(--bg-canvas)',
+                            color: 'var(--accent-contrast)',
                           }}
                         >
-                          {checked ? (
-                            <CheckSquare className="h-4 w-4" />
-                          ) : (
-                            <Square className="h-4 w-4" />
-                          )}
+                          <Check
+                            className="h-3.5 w-3.5 transition-transform duration-150"
+                            strokeWidth={3}
+                            style={{
+                              opacity: checked ? 1 : 0,
+                              transform: checked ? 'scale(1)' : 'scale(0.55)',
+                            }}
+                          />
                         </button>
                       </div>
 

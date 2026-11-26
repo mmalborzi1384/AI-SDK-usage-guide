@@ -4,6 +4,7 @@
 @layer base {
   :root,
   [data-theme="editorial-light"] {
+    color-scheme: light;
     --font-sans: "Vazirmatn", system-ui, -apple-system, sans-serif;
     --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
@@ -28,6 +29,11 @@
     --google-accent: #1D4ED8;
     --google-soft: #EEF3FC;
 
+    --scrollbar-track: #F3EFE7;
+    --scrollbar-thumb: #CEC6B6;
+    --scrollbar-thumb-hover: #A89E8B;
+    --range-track: #DDD6C7;
+
     /* Syntax Highlighting — Editorial Archival Ink (Light) */
     --code-bg: #FCFBF8;
     --code-header: #F5F2EA;
@@ -47,6 +53,7 @@
   }
 
   [data-theme="sepia-reading"] {
+    color-scheme: light;
     --bg-canvas: #F4ECD8;
     --bg-surface: #FAF4E6;
     --bg-subtle: #EBE1C8;
@@ -68,6 +75,11 @@
     --google-accent: #1E4E79;
     --google-soft: #E2E9EE;
 
+    --scrollbar-track: #EBE1C8;
+    --scrollbar-thumb: #BFA982;
+    --scrollbar-thumb-hover: #9C835B;
+    --range-track: #D3C29F;
+
     /* Syntax Highlighting — Warm Book Ink */
     --code-bg: #F8F1E1;
     --code-header: #EDE3CC;
@@ -87,6 +99,7 @@
   }
 
   [data-theme="obsidian-dark"] {
+    color-scheme: dark;
     --bg-canvas: #0B0E14;
     --bg-surface: #11151E;
     --bg-subtle: #161C27;
@@ -108,6 +121,11 @@
     --google-accent: #7AA2F7;
     --google-soft: #142038;
 
+    --scrollbar-track: #10141D;
+    --scrollbar-thumb: #2A3447;
+    --scrollbar-thumb-hover: #41506B;
+    --range-track: #252E40;
+
     /* Syntax Highlighting — Tokyo Obsidian IDE */
     --code-bg: #0D1119;
     --code-header: #141A26;
@@ -127,6 +145,7 @@
   }
 
   [data-theme="nordic-dark"] {
+    color-scheme: dark;
     --bg-canvas: #181D26;
     --bg-surface: #1F2531;
     --bg-subtle: #262E3C;
@@ -148,6 +167,11 @@
     --google-accent: #81A1C1;
     --google-soft: #232F40;
 
+    --scrollbar-track: #1C222D;
+    --scrollbar-thumb: #394459;
+    --scrollbar-thumb-hover: #536380;
+    --range-track: #323D50;
+
     /* Syntax Highlighting — Nordic Frost */
     --code-bg: #1B212B;
     --code-header: #232A36;
@@ -166,6 +190,34 @@
     --syn-comment: #76849C;
   }
 
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: 9999px;
+    border: 2px solid var(--scrollbar-track);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+  }
+
+  *::-webkit-scrollbar-corner {
+    background: var(--scrollbar-track);
+  }
+
   html {
     font-family: var(--font-sans);
     scroll-behavior: smooth;
@@ -178,6 +230,27 @@
     background-color: var(--bg-canvas);
     color: var(--text-primary);
     transition: background-color 180ms ease, color 180ms ease;
+  }
+
+  ::selection {
+    background-color: var(--accent-soft);
+    color: var(--text-primary);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* Clean numeric inputs without jarring native OS spin buttons */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
   }
 
   code,
@@ -200,7 +273,7 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Custom subtle scrollbars for code & sidebar */
+/* Finer scrollbars for inner code panels, sidebars & tables */
 .code-scroll::-webkit-scrollbar {
   height: 7px;
   width: 7px;
@@ -209,8 +282,62 @@
   background: transparent;
 }
 .code-scroll::-webkit-scrollbar-thumb {
-  background-color: var(--border-strong);
+  background-color: var(--scrollbar-thumb);
   border-radius: 9999px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+.code-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
+}
+
+/* Bespoke theme-native range slider */
+.editorial-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--range-track);
+  outline: none;
+  cursor: pointer;
+}
+
+.editorial-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background: var(--accent);
+  border: 2px solid var(--bg-surface);
+  box-shadow: 0 0 0 1px var(--border-strong);
+  transition: transform 140ms ease, background-color 140ms ease;
+}
+
+.editorial-range::-webkit-slider-thumb:hover {
+  transform: scale(1.12);
+  background: var(--accent-hover);
+}
+
+.editorial-range::-moz-range-track {
+  height: 4px;
+  border-radius: 9999px;
+  background: var(--range-track);
+}
+
+.editorial-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background: var(--accent);
+  border: 2px solid var(--bg-surface);
+  box-shadow: 0 0 0 1px var(--border-strong);
+  transition: transform 140ms ease, background-color 140ms ease;
+}
+
+.editorial-range::-moz-range-thumb:hover {
+  transform: scale(1.12);
+  background: var(--accent-hover);
 }
 
 /* Editorial A4 Print / PDF Engine (Always crisp archival ink on pure white) */

@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Check, Download, FileDown, FileText, Upload } from 'lucide-react';
 import { ALL_CHAPTERS, GOLDEN_TIPS, QUICK_REF_ROWS } from '../data/guideData';
+import { ThemedCheckbox } from './ui/ThemedControls';
 
 export interface PrintConfig {
   includeQuickRef: boolean;
@@ -172,53 +173,37 @@ export const ExportStudio: React.FC<ExportStudioProps> = ({
             تنظیمات چاپ PDF استاندارد A4
           </p>
 
-          <label className="flex cursor-pointer items-center gap-2.5 text-xs">
-            <input
-              type="checkbox"
+          <div className="space-y-2.5">
+            <ThemedCheckbox
               checked={printConfig.includeQuickRef}
-              onChange={(e) =>
-                onChangePrintConfig({ ...printConfig, includeQuickRef: e.target.checked })
+              onChange={(checked) =>
+                onChangePrintConfig({ ...printConfig, includeQuickRef: checked })
               }
-              className="h-4 w-4 accent-[var(--accent)]"
+              label="شامل جدول مرجع سریع (۲۲ عملیات) در خروجی چاپ"
             />
-            <span style={{ color: 'var(--text-secondary)' }}>
-              شامل جدول مرجع سریع (۲۲ عملیات) در خروجی چاپ
-            </span>
-          </label>
 
-          <label className="flex cursor-pointer items-center gap-2.5 text-xs">
-            <input
-              type="checkbox"
+            <ThemedCheckbox
               checked={printConfig.includePersonalNotes}
-              onChange={(e) =>
+              onChange={(checked) =>
                 onChangePrintConfig({
                   ...printConfig,
-                  includePersonalNotes: e.target.checked,
+                  includePersonalNotes: checked,
                 })
               }
-              className="h-4 w-4 accent-[var(--accent)]"
+              label="چاپ یادداشت‌های شخصی من در زیر هر فصل"
             />
-            <span style={{ color: 'var(--text-secondary)' }}>
-              چاپ یادداشت‌های شخصی من در زیر هر فصل
-            </span>
-          </label>
 
-          <label className="flex cursor-pointer items-center gap-2.5 text-xs">
-            <input
-              type="checkbox"
+            <ThemedCheckbox
               checked={printConfig.onlyBookmarkedInPrint}
-              onChange={(e) =>
+              onChange={(checked) =>
                 onChangePrintConfig({
                   ...printConfig,
-                  onlyBookmarkedInPrint: e.target.checked,
+                  onlyBookmarkedInPrint: checked,
                 })
               }
-              className="h-4 w-4 accent-[var(--accent)]"
+              label="فقط چاپ فصل‌های نشان‌شده (ساخت Cheat Sheet اختصاصی)"
             />
-            <span style={{ color: 'var(--text-secondary)' }}>
-              فقط چاپ فصل‌های نشان‌شده (ساخت Cheat Sheet اختصاصی)
-            </span>
-          </label>
+          </div>
 
           <button
             type="button"

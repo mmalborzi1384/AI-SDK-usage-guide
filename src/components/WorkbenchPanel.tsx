@@ -71,7 +71,7 @@ export const WorkbenchPanel: React.FC<WorkbenchPanelProps> = ({
   return (
     <section
       aria-label="میز کار مهندسی تعاملی"
-      className="no-print relative my-6 overflow-hidden rounded-lg border"
+      className="no-print relative my-6 overflow-visible rounded-lg border"
       style={{
         borderColor: 'var(--border-strong)',
         backgroundColor: 'var(--bg-subtle)',
@@ -159,7 +159,7 @@ export const WorkbenchPanel: React.FC<WorkbenchPanelProps> = ({
       {/* Active Tool Canvas */}
       {open && (
         <div
-          className="p-4 sm:p-5"
+          className="rounded-b-lg p-4 sm:p-5"
           style={{ backgroundColor: 'var(--bg-canvas)' }}
         >
           {activeTab === 'scaffolder' && <CodeScaffolder />}
