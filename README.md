@@ -16,9 +16,9 @@ npm run dev
 ```
 
 ## انتشار روی GitHub Pages
-این مخزن کاملاً برای **GitHub Pages** پیکربندی شده است (`base: './'` در `vite.config.ts` و فایل `.github/workflows/deploy.yml`):
+این مخزن کاملاً برای **GitHub Pages** پیکربندی شده است (`base: './'` در `vite.config.ts`، فایل `.nojekyll` و ورک‌فلوی `.github/workflows/deploy.yml` بدون وابستگی به `package-lock.json`):
 
-1. پروژه را روی شاخه `main` در یک ریپازیتوری گیت‌هاب Push کنید.
-2. در گیت‌هاب به مسیر **Settings → Pages** بروید.
-3. در بخش **Build and deployment** گزینه **Source** را روی **GitHub Actions** قرار دهید.
-4. پس از چند ثانیه سایت به‌صورت خودکار بیلد و منتشر می‌شود.
+1. پروژه را روی شاخه `main` (یا `master`) در گیت‌هاب Push کنید.
+2. در ریپازیتوری گیت‌هاب به مسیر **Settings → Pages** بروید.
+3. در بخش **Build and deployment** گزینه **Source** را حتماً روی **GitHub Actions** قرار دهید.
+4. از تب **Actions** وضعیت ورک‌فلوی `Deploy to GitHub Pages` را ببینید؛ پس از اتمام، لینک سایت شما آماده است.

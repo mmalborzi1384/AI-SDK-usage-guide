@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
-import { Bookmark } from 'lucide-react';
+import { Bookmark, CheckCircle2, NotebookPen } from 'lucide-react';
 import { Chapter, ViewMode } from '../types/guide';
 import { toPersianDigits } from '../data/guideData';
-import { CodeBlock } from './CodeBlock';
+import { CodeBlock, CodeScale } from './CodeBlock';
 
 interface ChapterSectionProps {
   chapter: Chapter;
   viewMode: ViewMode;
+  codeScale: CodeScale;
   isBookmarked: boolean;
+  isMastered: boolean;
+  personalNote: string;
+  includeNoteInPrint: boolean;
+  hideInPrint?: boolean;
   onToggleBookmark: (id: string) => void;
+  onToggleMastered: (id: string) => void;
+  onUpdateNote: (id: string, value: string) => void;
 }
 
 type LocalTab = 'both' | 'openai' | 'google';
@@ -16,10 +23,18 @@ type LocalTab = 'both' | 'openai' | 'google';
 export const ChapterSection: React.FC<ChapterSectionProps> = ({
   chapter,
   viewMode,
+  codeScale,
   isBookmarked,
+  isMastered,
+  personalNote,
+  includeNoteInPrint,
+  hideInPrint = false,
   onToggleBookmark,
+  onToggleMastered,
+  onUpdateNote,
 }) => {
   const [localTab, setLocalTab] = useState<LocalTab>('both');
+  const [noteOpen, setNoteOpen] = useState(false);
 
   const sharedOrTerminalBlocks = chapter.blocks.filter(
     (b) => b.provider === 'shared' || b.provider === 'terminal'
@@ -29,31 +44,31 @@ export const ChapterSection: React.FC<ChapterSectionProps> = ({
 
   const globalAllowsOpenAI = viewMode !== 'google';
   const globalAllowsGoogle = viewMode !== 'openai';
-  const hasBothGlobal = globalAllowsOpenAI && globalAllowsGoogle && Boolean(openaiBlock) && Boolean(googleBlock);
+  const hasBothGlobal =
+    globalAllowsOpenAI && globalAllowsGoogle && Boolean(openaiBlock) && Boolean(googleBlock);
 
   const showOpenAI =
     globalAllowsOpenAI && Boolean(openaiBlock) && (!hasBothGlobal || localTab !== 'google');
   const showGoogle =
     globalAllowsGoogle && Boolean(googleBlock) && (!hasBothGlobal || localTab !== 'openai');
 
-  const isSideBySide =
-    viewMode === 'side-by-side' && showOpenAI && showGoogle;
-
+  const isSideBySide = viewMode === 'side-by-side' && showOpenAI && showGoogle;
   const formattedChapterIndex = toPersianDigits(String(chapter.number).padStart(2, '0'));
+  const hasNote = personalNote.trim().length > 0;
 
   return (
     <article
       id={chapter.id}
-      className="border-t py-9 sm:py-11 print:py-5"
+      className={`border-t py-9 sm:py-11 print:py-5 ${hideInPrint ? 'print:hidden' : ''}`}
       style={{ borderColor: 'var(--border-subtle)' }}
     >
       {/* Swiss Editorial Chapter Header */}
-      <header className="mb-5 flex items-start justify-between gap-4">
+      <header className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex items-start gap-3.5 sm:gap-5">
           <span
             aria-hidden="true"
             className="hidden pt-1 font-mono text-2xl font-light tracking-tighter tabular-nums sm:block print:block print:text-lg"
-            style={{ color: 'var(--border-strong)' }}
+            style={{ color: isMastered ? 'var(--openai-accent)' : 'var(--border-strong)' }}
           >
             {formattedChapterIndex}
           </span>
@@ -100,21 +115,58 @@ export const ChapterSection: React.FC<ChapterSectionProps> = ({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => onToggleBookmark(chapter.id)}
-          aria-pressed={isBookmarked}
-          aria-label={isBookmarked ? 'حذف از نشان‌شده‌ها' : 'نشان کردن این فصل'}
-          className="no-print inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors whitespace-nowrap"
-          style={{
-            borderColor: isBookmarked ? 'var(--accent)' : 'var(--border-subtle)',
-            backgroundColor: isBookmarked ? 'var(--accent-soft)' : 'var(--bg-surface)',
-            color: isBookmarked ? 'var(--accent)' : 'var(--text-muted)',
-          }}
-        >
-          <Bookmark className={`h-3.5 w-3.5 ${isBookmarked ? 'fill-current' : ''}`} />
-          <span className="hidden sm:inline">{isBookmarked ? 'نشان‌شده' : 'نشان'}</span>
-        </button>
+        {/* Chapter Quick Actions: Mastery, Personal Note, Bookmark */}
+        <div className="no-print flex shrink-0 items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => onToggleMastered(chapter.id)}
+            aria-pressed={isMastered}
+            title={isMastered ? 'مرور شده' : 'علامت زدن به‌عنوان مرور شده'}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors whitespace-nowrap"
+            style={{
+              borderColor: isMastered ? 'var(--openai-accent)' : 'var(--border-subtle)',
+              backgroundColor: isMastered ? 'var(--openai-soft)' : 'var(--bg-surface)',
+              color: isMastered ? 'var(--openai-accent)' : 'var(--text-muted)',
+            }}
+          >
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{isMastered ? 'مرور شد' : 'تسلط'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setNoteOpen((v) => !v)}
+            aria-expanded={noteOpen}
+            title="یادداشت شخصی برای این فصل"
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors whitespace-nowrap"
+            style={{
+              borderColor: noteOpen || hasNote ? 'var(--accent)' : 'var(--border-subtle)',
+              backgroundColor: noteOpen || hasNote ? 'var(--accent-soft)' : 'var(--bg-surface)',
+              color: noteOpen || hasNote ? 'var(--accent)' : 'var(--text-muted)',
+            }}
+          >
+            <NotebookPen className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">
+              {hasNote ? 'یادداشت دارد' : 'یادداشت'}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onToggleBookmark(chapter.id)}
+            aria-pressed={isBookmarked}
+            aria-label={isBookmarked ? 'حذف از نشان‌شده‌ها' : 'نشان کردن این فصل'}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors whitespace-nowrap"
+            style={{
+              borderColor: isBookmarked ? 'var(--accent)' : 'var(--border-subtle)',
+              backgroundColor: isBookmarked ? 'var(--accent-soft)' : 'var(--bg-surface)',
+              color: isBookmarked ? 'var(--accent)' : 'var(--text-muted)',
+            }}
+          >
+            <Bookmark className={`h-3.5 w-3.5 ${isBookmarked ? 'fill-current' : ''}`} />
+            <span className="hidden sm:inline">{isBookmarked ? 'نشان‌شده' : 'نشان'}</span>
+          </button>
+        </div>
       </header>
 
       {/* Editorial Body Prose */}
@@ -204,7 +256,7 @@ export const ChapterSection: React.FC<ChapterSectionProps> = ({
         </div>
       )}
 
-      {/* Key Engineering Notes (clean hairline border, zero thick left bar) */}
+      {/* Key Engineering Notes */}
       {chapter.notes && chapter.notes.length > 0 && (
         <div
           className="print-avoid-break mb-5 rounded-md border px-4 py-3.5 print:mb-3"
@@ -213,10 +265,7 @@ export const ChapterSection: React.FC<ChapterSectionProps> = ({
             backgroundColor: 'var(--bg-subtle)',
           }}
         >
-          <p
-            className="mb-1.5 text-xs font-bold"
-            style={{ color: 'var(--text-primary)' }}
-          >
+          <p className="mb-1.5 text-xs font-bold" style={{ color: 'var(--text-primary)' }}>
             نکات کلیدی پیاده‌سازی
           </p>
           <ul
@@ -235,7 +284,7 @@ export const ChapterSection: React.FC<ChapterSectionProps> = ({
         </div>
       )}
 
-      {/* Per-Chapter Instant SDK Switcher for Ergonomic Mobile Reading */}
+      {/* Per-Chapter Mobile SDK Tab Switcher */}
       {hasBothGlobal && (
         <div className="no-print mb-3 flex items-center justify-between gap-2 xl:hidden">
           <span className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>
@@ -278,7 +327,7 @@ export const ChapterSection: React.FC<ChapterSectionProps> = ({
       {/* Code Deck */}
       <div className="space-y-4 print:space-y-3">
         {sharedOrTerminalBlocks.map((block, i) => (
-          <CodeBlock key={`shared-${i}`} block={block} />
+          <CodeBlock key={`shared-${i}`} block={block} codeScale={codeScale} />
         ))}
 
         <div
@@ -288,10 +337,71 @@ export const ChapterSection: React.FC<ChapterSectionProps> = ({
               : 'space-y-4 print:space-y-3'
           }
         >
-          {showOpenAI && openaiBlock && <CodeBlock block={openaiBlock} />}
-          {showGoogle && googleBlock && <CodeBlock block={googleBlock} />}
+          {showOpenAI && openaiBlock && (
+            <CodeBlock block={openaiBlock} codeScale={codeScale} />
+          )}
+          {showGoogle && googleBlock && (
+            <CodeBlock block={googleBlock} codeScale={codeScale} />
+          )}
         </div>
       </div>
+
+      {/* Personal Note Editor (Screen) & Optional Print Block */}
+      {noteOpen && (
+        <div
+          className="no-print mt-4 rounded-md border p-4"
+          style={{
+            borderColor: 'var(--accent)',
+            backgroundColor: 'var(--bg-surface)',
+          }}
+        >
+          <div className="mb-2 flex items-center justify-between text-xs">
+            <span className="font-bold" style={{ color: 'var(--accent)' }}>
+              یادداشت شخصی من (ذخیره خودکار در مرورگر)
+            </span>
+            {hasNote && (
+              <button
+                type="button"
+                onClick={() => onUpdateNote(chapter.id, '')}
+                className="text-[11px] hover:underline"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                پاک کردن
+              </button>
+            )}
+          </div>
+          <textarea
+            value={personalNote}
+            onChange={(e) => onUpdateNote(chapter.id, e.target.value)}
+            rows={3}
+            placeholder="نکات پروژه خودتان (مثلاً سقف RPM اکانت، نام مدل داخلی یا آدرس Proxy) را اینجا بنویسید..."
+            className="w-full resize-y rounded border p-2.5 text-xs leading-relaxed focus:outline-none"
+            style={{
+              borderColor: 'var(--border-subtle)',
+              backgroundColor: 'var(--bg-canvas)',
+              color: 'var(--text-primary)',
+            }}
+          />
+        </div>
+      )}
+
+      {hasNote && (
+        <div
+          className={`mt-4 rounded-md border px-4 py-3 text-xs leading-relaxed ${
+            noteOpen ? 'hidden print:block' : ''
+          } ${includeNoteInPrint ? '' : 'print:hidden'}`}
+          style={{
+            borderColor: 'var(--border-strong)',
+            backgroundColor: 'var(--accent-soft)',
+            color: 'var(--text-primary)',
+          }}
+        >
+          <span className="font-bold" style={{ color: 'var(--accent)' }}>
+            یادداشت شخصی:{' '}
+          </span>
+          <span className="whitespace-pre-wrap">{personalNote}</span>
+        </div>
+      )}
     </article>
   );
 };

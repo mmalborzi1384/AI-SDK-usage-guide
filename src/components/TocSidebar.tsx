@@ -1,7 +1,7 @@
 import React from 'react';
-import { Bookmark, Search, X } from 'lucide-react';
+import { Bookmark, Check, NotebookPen, Search, X } from 'lucide-react';
 import { Chapter, GuidePart } from '../types/guide';
-import { toPersianDigits } from '../data/guideData';
+import { TOTAL_CHAPTER_COUNT, toPersianDigits } from '../data/guideData';
 
 interface TocSidebarProps {
   parts: GuidePart[];
@@ -10,6 +10,8 @@ interface TocSidebarProps {
   searchQuery: string;
   onSearchChange: (q: string) => void;
   bookmarks: string[];
+  masteredIds: string[];
+  personalNotes: Record<string, string>;
   onlyBookmarked: boolean;
   onToggleOnlyBookmarked: () => void;
   onNavigate: (id: string) => void;
@@ -23,14 +25,18 @@ export const TocSidebar: React.FC<TocSidebarProps> = ({
   searchQuery,
   onSearchChange,
   bookmarks,
+  masteredIds,
+  personalNotes,
   onlyBookmarked,
   onToggleOnlyBookmarked,
   onNavigate,
   isDrawer = false,
 }) => {
+  const masteredPct = Math.round((masteredIds.length / TOTAL_CHAPTER_COUNT) * 100);
+
   return (
     <div className={isDrawer ? 'flex h-full flex-col' : 'py-6'}>
-      <div className="mb-4 flex items-center justify-between gap-2">
+      <div className="mb-3 flex items-center justify-between gap-2">
         <span
           className="text-xs font-bold tracking-tight"
           style={{ color: 'var(--text-primary)' }}
@@ -52,7 +58,38 @@ export const TocSidebar: React.FC<TocSidebarProps> = ({
         </button>
       </div>
 
-      <div className="relative mb-5">
+      {/* Mastery Progress Strip (real user-driven study progress) */}
+      <div
+        className="mb-4 rounded-md border px-3 py-2.5"
+        style={{
+          borderColor: 'var(--border-subtle)',
+          backgroundColor: 'var(--bg-surface)',
+        }}
+      >
+        <div className="flex items-center justify-between text-[11px]">
+          <span style={{ color: 'var(--text-muted)' }}>پیشرفت مطالعه</span>
+          <span
+            className="font-mono font-semibold tabular-nums"
+            style={{ color: 'var(--openai-accent)' }}
+          >
+            {toPersianDigits(masteredIds.length)} / {toPersianDigits(TOTAL_CHAPTER_COUNT)}
+          </span>
+        </div>
+        <div
+          className="mt-1.5 h-1.5 w-full overflow-hidden rounded-xs"
+          style={{ backgroundColor: 'var(--bg-subtle)' }}
+        >
+          <div
+            className="h-full transition-[width] duration-200"
+            style={{
+              width: `${masteredPct}%`,
+              backgroundColor: 'var(--openai-accent)',
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="relative mb-4">
         <Search
           className="pointer-events-none absolute top-1/2 right-3 h-3.5 w-3.5 -translate-y-1/2"
           style={{ color: 'var(--text-muted)' }}
@@ -120,6 +157,8 @@ export const TocSidebar: React.FC<TocSidebarProps> = ({
                 {partChapters.map((ch) => {
                   const isActive = activeId === ch.id;
                   const isSaved = bookmarks.includes(ch.id);
+                  const isMastered = masteredIds.includes(ch.id);
+                  const hasNote = Boolean(personalNotes[ch.id]?.trim());
                   return (
                     <li key={ch.id}>
                       <button
@@ -143,12 +182,26 @@ export const TocSidebar: React.FC<TocSidebarProps> = ({
                           </span>
                           {ch.titleFa}
                         </span>
-                        {isSaved && (
-                          <Bookmark
-                            className="h-3 w-3 shrink-0 fill-current"
-                            style={{ color: 'var(--accent)' }}
-                          />
-                        )}
+                        <span className="flex shrink-0 items-center gap-1">
+                          {hasNote && (
+                            <NotebookPen
+                              className="h-3 w-3"
+                              style={{ color: 'var(--text-muted)' }}
+                            />
+                          )}
+                          {isMastered && (
+                            <Check
+                              className="h-3 w-3"
+                              style={{ color: 'var(--openai-accent)' }}
+                            />
+                          )}
+                          {isSaved && (
+                            <Bookmark
+                              className="h-3 w-3 fill-current"
+                              style={{ color: 'var(--accent)' }}
+                            />
+                          )}
+                        </span>
                       </button>
                     </li>
                   );

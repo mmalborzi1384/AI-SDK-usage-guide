@@ -3,9 +3,11 @@ import { Check, Copy, WrapText } from 'lucide-react';
 import { CodeBlockData } from '../types/guide';
 import { highlightCodeLine } from '../utils/syntaxHighlighter';
 
+export type CodeScale = 'sm' | 'md' | 'lg';
+
 interface CodeBlockProps {
   block: CodeBlockData;
-  compact?: boolean;
+  codeScale?: CodeScale;
 }
 
 const PROVIDER_META = {
@@ -31,10 +33,17 @@ const PROVIDER_META = {
   },
 } as const;
 
-export const CodeBlock: React.FC<CodeBlockProps> = ({ block }) => {
+export const CodeBlock: React.FC<CodeBlockProps> = ({ block, codeScale = 'md' }) => {
   const [copied, setCopied] = useState(false);
   const [softWrap, setSoftWrap] = useState(false);
   const meta = PROVIDER_META[block.provider];
+
+  const scaleClass =
+    codeScale === 'sm'
+      ? 'text-[11.5px] sm:text-[12px] leading-[1.6]'
+      : codeScale === 'lg'
+        ? 'text-[13.5px] sm:text-[14.5px] leading-[1.75]'
+        : 'text-[12.5px] sm:text-[13px] leading-[1.7]';
 
   const handleCopy = async () => {
     try {
@@ -142,7 +151,7 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({ block }) => {
       <div className="code-scroll overflow-x-auto py-3 print:overflow-visible print:py-2">
         <pre
           dir="ltr"
-          className={`m-0 text-left text-[12.5px] leading-[1.7] sm:text-[13px] ${
+          className={`m-0 text-left ${scaleClass} ${
             softWrap ? 'whitespace-pre-wrap break-words' : 'whitespace-pre'
           }`}
         >

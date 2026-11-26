@@ -5,14 +5,14 @@ export const CHAPTERS_PART_2: Chapter[] = [
     id: 'ch-10',
     number: 10,
     partId: 'part-3',
-    titleFa: 'مکالمه چندمرحله‌ای و حفظ حافظه چت (سمت سرور و کلاینت)',
-    titleEn: 'Multi-turn Chat & Conversation State Management',
+    titleFa: 'مکالمه چندمرحله‌ای، Interactions API و حفظ حافظه چت',
+    titleEn: 'Multi-turn Chat, Interactions API & Multi-Model Handoff',
     summary:
-      'ساخت چت‌بات یا ادامه مکالمه‌ای که مدل پیام‌های نوبت‌های قبلی را به خاطر بسپارد. تفاوت معماری مهم: OpenAI می‌تواند تاریخچه را با previous_response_id در سرور نگه دارد، در حالی که Gemini تاریخچه را در شیء chat در سمت کلاینت مدیریت می‌کند.',
+      'ساخت چت‌بات یا مکالمه چندنوبتی با حفظ تاریخچه. هر دو پلتفرم در نسخه ۲۰۲۶ از حفظ وضعیت سمت سرور پشتیبانی می‌کنند: OpenAI با previous_response_id و Google با Interactions API جدید (previous_interaction_id) که حتی امکان جابه‌جایی بین مدل‌ها در طول یک مکالمه را می‌دهد.',
     isExpanded: true,
     notes: [
-      'اگر به دلیل حریم خصوصی (Zero Data Retention) نمی‌خواهید تاریخچه در سرور OpenAI ذخیره شود، store=False بگذارید و آرایه پیام‌ها (input=[...]) را خودتان در هر نوبت ارسال کنید.',
-      'در Google Gen AI برای ذخیره تاریخچه چت در دیتابیس می‌توانید از chat.get_history() استفاده کرده و در جلسه بعدی آن را با پارامتر history به client.chats.create(...) پاس دهید.',
+      'در OpenAI برای حفظ حریم خصوصی (عدم ذخیره روی سرور) از store=False همراه با ارسال دستی آرایه پیام‌ها استفاده کنید. همچنین برای حفظ کش استدلال، پیشوند مکالمه را تغییر ندهید.',
+      'در Google Gen AI، Interactions API اجازه می‌دهد نوبت اول (طراحی معماری) را با gemini-4-carbon انجام دهید و نوبت دوم (پیاده‌سازی سریع کد) را با همان previous_interaction_id به gemini-4-hydrogen بسپارید.',
     ],
     blocks: [
       {
@@ -22,12 +22,12 @@ export const CHAPTERS_PART_2: Chapter[] = [
         language: 'python',
         code: `# روش ۱: مدیریت وضعیت سمت سرور با previous_response_id
 resp1 = client.responses.create(
-    model="gpt-4.1-mini",
+    model="gpt-6.2-sol",
     input="Hi, my name is Mohammadmahdi and I code in Python.",
 )
 
 resp2 = client.responses.create(
-    model="gpt-4.1-mini",
+    model="gpt-6.2-sol",
     previous_response_id=resp1.id,
     input="What is my name and primary language?",
 )
@@ -40,7 +40,7 @@ history = [
     {"role": "user", "content": "What is my name?"},
 ]
 stateless = client.responses.create(
-    model="gpt-4.1-mini",
+    model="gpt-6-luna",
     input=history,
     store=False,
 )
@@ -49,22 +49,27 @@ print(stateless.output_text)`,
       {
         provider: 'google',
         label: 'Google Gen AI SDK',
-        sublabel: 'جلسه چت سمت کلاینت + استخراج تاریخچه برای دیتابیس',
+        sublabel: 'Interactions API سمت سرور (با جابه‌جایی مدل) + چت سمت کلاینت',
         language: 'python',
-        code: `chat = client.chats.create(model="gemini-2.5-flash")
-
-# نوبت ۱
-resp1 = chat.send_message(
-    "Hi, my name is Mohammadmahdi and I code in Python."
+        code: `# روش ۱ (مدرن ۲۰۲۶): Interactions API با وضعیت سمت سرور و جابه‌جایی مدل
+plan = client.interactions.create(
+    model="gemini-4-carbon",
+    input="Design a thread-safe rate limiter in Python.",
 )
 
-# نوبت ۲: شیء chat تاریخچه را خودکار ارسال می‌کند
+impl = client.interactions.create(
+    model="gemini-4-hydrogen",
+    previous_interaction_id=plan.id,
+    input="Now write the clean Python code and pytest suite for your design.",
+)
+print(impl.output_text)
+
+# روش ۲: جلسه چت کلاسیک سمت کلاینت + استخراج تاریخچه برای دیتابیس
+chat = client.chats.create(model="gemini-4-hydrogen")
+chat.send_message("Hi, my name is Mohammadmahdi and I code in Python.")
 resp2 = chat.send_message("What is my name and primary language?")
 print(resp2.text)
-
-# مشاهده تاریخچه برای ذخیره در دیتابیس یا بازیابی در نشست بعدی
-saved_history = chat.get_history()
-print("Turns stored:", len(saved_history))`,
+print("Turns stored:", len(chat.get_history()))`,
       },
     ],
   },
@@ -75,7 +80,7 @@ print("Turns stored:", len(saved_history))`,
     titleFa: 'پاسخ‌دهی جریانی / لحظه‌ای (Streaming)',
     titleEn: 'Real-Time Token Streaming & Final Response Capture',
     summary:
-      'نمایش کلمه‌به‌کلمه پاسخ به کاربر به محض تولید توکن‌ها برای کاهش چشمگیر زمان انتظار درک‌شده (Time-to-First-Token). در OpenAI استفاده از Context Manager مدرن responses.stream علاوه بر استریم روان، دسترسی به آبجکت نهایی (شامل آمار توکن) را نیز فراهم می‌کند.',
+      'نمایش کلمه‌به‌کلمه پاسخ به کاربر به محض تولید توکن‌ها برای کاهش چشمگیر زمان انتظار درک‌شده (Time-to-First-Token). در OpenAI استفاده از Context Manager مدرن responses.stream علاوه بر استریم متن و خلاصه تفکر، دسترسی به آبجکت نهایی (شامل آمار توکن) را نیز فراهم می‌کند.',
     isExpanded: true,
     blocks: [
       {
@@ -84,14 +89,16 @@ print("Turns stored:", len(saved_history))`,
         sublabel: 'Context Manager مدرن + دریافت پاسخ نهایی',
         language: 'python',
         code: `with client.responses.stream(
-    model="gpt-4.1-mini",
-    input="Write a 3-paragraph overview of the Transformer architecture.",
+    model="gpt-6.2-sol",
+    input="Write a 3-paragraph overview of modern attention architectures.",
 ) as stream:
     for event in stream:
         if event.type == "response.output_text.delta":
             print(event.delta, end="", flush=True)
+        elif event.type == "response.reasoning_summary_text.delta":
+            # در صورت فعال بودن summary، خلاصه تفکر لحظه‌ای اینجا می‌آید
+            pass
 
-    # دسترسی به شیء کامل پاسخ (برای ثبت usage و status) پس از پایان استریم
     final = stream.get_final_response()
     print(f"\\n\\n[Tokens used: {final.usage.total_tokens}]")`,
       },
@@ -101,8 +108,8 @@ print("Turns stored:", len(saved_history))`,
         sublabel: 'استریم تکه به تکه + آمار توکن در آخرین چانک',
         language: 'python',
         code: `stream = client.models.generate_content_stream(
-    model="gemini-2.5-flash",
-    contents="Write a 3-paragraph overview of the Transformer architecture.",
+    model="gemini-4-hydrogen",
+    contents="Write a 3-paragraph overview of modern attention architectures.",
 )
 
 last_chunk = None
@@ -120,23 +127,23 @@ if last_chunk and last_chunk.usage_metadata:
     id: 'ch-12',
     number: 12,
     partId: 'part-3',
-    titleFa: 'کنترل میزان استدلال داخلی و مشاهده خلاصه افکار',
-    titleEn: 'Reasoning Effort, Thinking Budget & Thought Summaries',
+    titleFa: 'کنترل میزان استدلال داخلی (Reasoning / thinking_level) و خلاصه افکار',
+    titleEn: 'Reasoning Effort, Thinking Levels & Thought Summaries',
     summary:
-      'موازنه دقیق بین سرعت/هزینه و عمق استدلال؛ خاموش یا کم کردن تفکر در کارهای ساده و افزایش آن در مسائل پیچیده ریاضی، معماری و کدنویسی، همراه با مشاهده خلاصه زنجیره تفکر مدل.',
+      'موازنه دقیق بین سرعت/هزینه و عمق استدلال؛ استفاده از سطوح پایین در کارهای روزمره و افزایش آن تا high یا xhigh در مسائل پیچیده ریاضی، معماری و کدنویسی، همراه با مشاهده خلاصه زنجیره تفکر مدل.',
     isExpanded: true,
     notes: [
-      'در OpenAI برای مدل‌های استدلالی (مانند o4-mini و o3) با پارامتر reasoning={"effort": "medium", "summary": "auto"} علاوه بر تنظیم عمق استدلال، خلاصه استدلال را هم در آیتم‌هایی با نوع reasoning دریافت می‌کنید.',
-      'در Google Gen AI با include_thoughts=True در ThinkingConfig، بخش‌هایی که ویژگی part.thought برابر True دارند حاوی خلاصه تفکر مدل هستند و جدا از پاسخ نهایی قابل خواندن‌اند.',
+      'در نسل جدید Gemini 4 به جای تعیین دستی تعداد توکن، از پارامتر استاندارد thinking_level با مقادیر "low"، "medium"، "high" و "xhigh" استفاده می‌شود (برای مدل‌های قدیمی‌تر Gemini 2.5 همچنان thinking_budget کاربرد دارد).',
+      'در OpenAI برای مدل‌های استدلالی مانند gpt-6.2-astra با reasoning={"effort": "medium", "summary": "auto"} عمق استدلال و دریافت خلاصه قابل‌خواندن کنترل می‌شود.',
     ],
     blocks: [
       {
         provider: 'openai',
         label: 'OpenAI Responses API',
-        sublabel: 'تنظیم effort + دریافت خلاصه استدلال',
+        sublabel: 'تنظیم effort + دریافت خلاصه استدلال در gpt-6.2-astra',
         language: 'python',
         code: `response = client.responses.create(
-    model="o4-mini",
+    model="gpt-6.2-astra",
     input="Prove the time complexity of Dijkstra's algorithm with a binary heap.",
     reasoning={
         "effort": "medium",   # "low" | "medium" | "high"
@@ -153,14 +160,14 @@ print("\\n[Final Answer]:\\n", response.output_text)`,
       {
         provider: 'google',
         label: 'Google Gen AI SDK',
-        sublabel: 'تنظیم thinking_budget + جداسازی افکار از پاسخ نهایی',
+        sublabel: 'پارامتر مدرن thinking_level + جداسازی افکار از پاسخ نهایی',
         language: 'python',
         code: `response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-4-carbon",
     contents="Prove the time complexity of Dijkstra's algorithm with a binary heap.",
     config=types.GenerateContentConfig(
         thinking_config=types.ThinkingConfig(
-            thinking_budget=2048,  # عدد 0 تفکر را خاموش می‌کند
+            thinking_level="high",  # "low" | "medium" | "high" | "xhigh"
             include_thoughts=True,
         ),
     ),
@@ -190,7 +197,7 @@ for part in response.candidates[0].content.parts:
         sublabel: 'جستجوی وب + استخراج لینک‌های استناد (annotations)',
         language: 'python',
         code: `response = client.responses.create(
-    model="gpt-4.1-mini",
+    model="gpt-6.2-sol",
     tools=[{"type": "web_search"}],
     input="What is the latest stable release of Python?",
 )
@@ -211,7 +218,7 @@ for item in response.output:
         sublabel: 'Google Search Grounding + استخراج منابع و کوئری‌ها',
         language: 'python',
         code: `response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-4-hydrogen",
     contents="What is the latest stable release of Python?",
     config=types.GenerateContentConfig(
         tools=[types.Tool(google_search=types.GoogleSearch())],
@@ -233,60 +240,83 @@ if meta:
     id: 'ch-14',
     number: 14,
     partId: 'part-4',
-    titleFa: 'ابزارهای داخلی پیشرفته: اجرای کد پایتون و خواندن لینک (URL)',
-    titleEn: 'Built-in Code Execution & URL Context',
+    titleFa: 'ابزارهای داخلی پیشرفته: File Search، اجرای کد، URL Context و MCP',
+    titleEn: 'Built-in File Search (RAG), Code Execution, URL Context & Remote MCP',
     summary:
-      'استفاده از محیط سندباکس امن پایتون در سمت سرور مدل برای انجام محاسبات دقیق ریاضی، تحلیل داده و رفع خطاهای حسابی LLMها؛ و در Gemini امکان خواندن مستقیم محتوای یک یا چند آدرس وب با ابزار URL Context.',
+      'استفاده از ابزارهای آماده سمت سرور برای RAG مدیریت‌شده روی اسناد (File Search)، اجرای کد در سندباکس امن پایتون، خواندن مستقیم لینک‌ها (URL Context در Gemini) و اتصال مستقیم به سرورهای Remote MCP (در OpenAI Responses API).',
     isNew: true,
     notes: [
-      'اجرای کد در سندباکس برای تحلیل فایل‌های CSV، محاسبات مالی دقیق و رسم نمودار بسیار مطمئن‌تر از محاسبه ذهنی مدل است.',
-      'در Gemini ابزار url_context به مدل اجازه می‌دهد محتوای دقیق صفحه وب موجود در پرامپت را بدون نیاز به کتابخانه‌های Scraping واکشی و تحلیل کند.',
+      'ابزار file_search در هر دو سرویس (Vector Stores در OpenAI و File Search Stores با gemini-embedding-2 در گوگل) نیاز به پیاده‌سازی دستی Chunking و دیتابیس برداری را در بسیاری از پروژه‌ها حذف می‌کند.',
+      'در OpenAI Responses API با نوع ابزار "mcp" می‌توانید مدل را مستقیم به سرورهای Model Context Protocol داخلی یا ابری (مثل GitHub، Sentry یا ابزارهای سازمانی) متصل کنید.',
     ],
     blocks: [
       {
         provider: 'openai',
         label: 'OpenAI Responses API',
-        sublabel: 'ابزار داخلی Code Interpreter در کانتینر امن',
+        sublabel: 'File Search (RAG) + Code Interpreter + اتصال مستقیم Remote MCP',
         language: 'python',
-        code: `response = client.responses.create(
-    model="gpt-4.1",
+        code: `# ۱) جستجو در پایگاه دانش (File Search) + اجرای کد پایتون
+rag_resp = client.responses.create(
+    model="gpt-6.2-sol",
+    tools=[
+        {"type": "file_search", "vector_store_ids": ["vs_abc123"]},
+        {"type": "code_interpreter", "container": {"type": "auto"}},
+    ],
+    input="Extract Q3 revenue from our report and compute YoY growth in Python.",
+)
+print(rag_resp.output_text)
+
+# ۲) اتصال مستقیم به سرور Remote MCP بدون نوشتن Wrapper دستی
+mcp_resp = client.responses.create(
+    model="gpt-6.2-sol",
     tools=[
         {
-            "type": "code_interpreter",
-            "container": {"type": "auto"},
+            "type": "mcp",
+            "server_label": "internal-docs-mcp",
+            "server_url": "https://mcp.example.com/endpoint",
+            "authorization": "Bearer mcp_token_abc123",
         }
     ],
-    input=(
-        "Calculate the exact sum of the first 50 prime numbers "
-        "using Python and verify the result."
-    ),
+    input="Fetch the latest error logs from Sentry and summarize root causes.",
 )
-print(response.output_text)`,
+print(mcp_resp.output_text)`,
       },
       {
         provider: 'google',
         label: 'Google Gen AI SDK',
-        sublabel: 'سندباکس اجرای کد (Code Execution) و خواندن لینک (URL Context)',
+        sublabel: 'File Search Store + سندباکس اجرای کد + خواندن لینک (URL Context)',
         language: 'python',
-        code: `# ۱) اجرای امن کد پایتون در سندباکس سرور گوگل
-code_resp = client.models.generate_content(
-    model="gemini-2.5-flash",
-    contents="Sum the first 50 prime numbers by writing and running Python.",
-    config=types.GenerateContentConfig(
-        tools=[types.Tool(code_execution=types.ToolCodeExecution())],
-    ),
+        code: `# ۱) RAG مدیریت‌شده با File Search Store و gemini-embedding-2
+store = client.file_search_stores.create(
+    config={
+        "display_name": "my-docs-store",
+        "embedding_model": "models/gemini-embedding-2",
+    }
 )
-print(code_resp.text)
+doc = client.files.upload(file="report.pdf")
+client.file_search_stores.import_file(
+    file_search_store_name=store.name, file_name=doc.name
+)
 
-# ۲) خواندن و تحلیل مستقیم محتوای یک لینک با URL Context
-url_resp = client.models.generate_content(
-    model="gemini-2.5-flash",
-    contents="نکات کلیدی این صفحه را خلاصه کن: https://docs.python.org/3/whatsnew/",
+rag_resp = client.interactions.create(
+    model="gemini-3.8-flash",
+    input="What were the Q3 revenue metrics?",
+    tools=[{"type": "file_search", "file_search_store_names": [store.name]}],
+)
+print(rag_resp.output_text)
+
+# ۲) اجرای کد پایتون + خواندن مستقیم لینک با URL Context
+resp = client.models.generate_content(
+    model="gemini-4-hydrogen",
+    contents="نکات کلیدی این صفحه را تحلیل کن: https://docs.python.org/3/whatsnew/",
     config=types.GenerateContentConfig(
-        tools=[types.Tool(url_context=types.UrlContext())],
+        tools=[
+            types.Tool(url_context=types.UrlContext()),
+            types.Tool(code_execution=types.ToolCodeExecution()),
+        ],
     ),
 )
-print(url_resp.text)`,
+print(resp.text)`,
       },
     ],
   },
@@ -300,7 +330,7 @@ print(url_resp.text)`,
       'اتصال مدل به توابع پایتون، پایگاه‌داده یا سرویس‌های داخلی سازمان برای ساخت ایجنت‌های هوشمند. شامل هر دو مرحله کلیدی: دریافت درخواست فراخوانی از مدل، اجرای تابع محلی و بازگرداندن خروجی تابع به مدل برای تولید پاسخ نهایی.',
     isExpanded: true,
     notes: [
-      'در OpenAI Responses API باید خروجی تابع را به‌صورت آیتم function_call_output همراه با call_id دقیقاً منطبق با درخواست مدل برگردانید (با previous_response_id یا همراه با response.output).',
+      'در OpenAI Responses API باید خروجی تابع را به‌صورت آیتم function_call_output همراه با call_id دقیقاً منطبق با درخواست مدل برگردانید (با previous_response_id یا همراه با response.output شامل آیتم‌های reasoning).',
       'در Google Gen AI، ارسال مستقیم تابع پایتون باعث اجرای خودکار (Automatic Function Calling) می‌شود؛ اما در سیستم‌های حساس (مثل پرداخت یا حذف داده) می‌توانید با disable=True کنترل کامل تأیید و اجرا را به دست بگیرید.',
     ],
     blocks: [
@@ -331,7 +361,7 @@ tools = [
 
 # گام ۱: مدل تصمیم می‌گیرد کدام تابع را با چه ورودی صدا بزند
 resp1 = client.responses.create(
-    model="gpt-4.1-mini",
+    model="gpt-6.2-sol",
     input="What is the weather in Tehran right now?",
     tools=tools,
 )
@@ -352,7 +382,7 @@ for item in resp1.output:
 
 # گام ۳: ارسال نتیجه تابع به مدل برای تولید پاسخ نهایی به کاربر
 resp2 = client.responses.create(
-    model="gpt-4.1-mini",
+    model="gpt-6.2-sol",
     previous_response_id=resp1.id,
     input=tool_outputs,
     tools=tools,
@@ -370,7 +400,7 @@ print(resp2.output_text)`,
 
 # روش ۱: حالت خودکار (SDK اسکیما را می‌سازد، تابع را اجرا و پاسخ نهایی را برمی‌گرداند)
 auto_resp = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-4-hydrogen",
     contents="What is the weather in Tehran right now?",
     config=types.GenerateContentConfig(tools=[get_weather]),
 )
@@ -378,7 +408,7 @@ print(auto_resp.text)
 
 # روش ۲: حالت دستی (برای تأیید کاربر یا لاگ امنیتی پیش از اجرا)
 manual_1 = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-4-hydrogen",
     contents="What is the weather in Tehran right now?",
     config=types.GenerateContentConfig(
         tools=[get_weather],
@@ -396,7 +426,7 @@ if manual_1.function_calls:
         response={"result": result},
     )
     manual_2 = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-4-hydrogen",
         contents=[
             "What is the weather in Tehran right now?",
             manual_1.candidates[0].content,
@@ -411,13 +441,13 @@ if manual_1.function_calls:
     id: 'ch-16',
     number: 16,
     partId: 'part-4',
-    titleFa: 'تولید بردارهای معنایی (Embeddings) برای RAG و جستجو',
-    titleEn: 'Vector Embeddings for Semantic Search & RAG',
+    titleFa: 'تولید بردارهای معنایی (Embeddings) برای RAG متنی و چندوجهی',
+    titleEn: 'Vector Embeddings (Text & Multimodal) for RAG',
     summary:
-      'تبدیل متن به بردارهای عددی برای ساخت سیستم‌های بازیابی اطلاعات (RAG)، جستجوی معنایی، خوشه‌بندی و تشخیص شباهت متون. در هر دو SDK امکان کاهش ابعاد خروجی (Matryoshka Dimensions) برای صرفه‌جویی در حافظه دیتابیس برداری وجود دارد.',
+      'تبدیل متن (و در gemini-embedding-2 حتی تصویر و اسناد چندوجهی) به بردارهای عددی برای ساخت سیستم‌های بازیابی اطلاعات (RAG)، جستجوی معنایی و خوشه‌بندی، با قابلیت کاهش ابعاد خروجی (Matryoshka Dimensions).',
     isNew: true,
     notes: [
-      'در Google Gen AI تعیین پارامتر task_type (مانند RETRIEVAL_DOCUMENT برای اسناد و RETRIEVAL_QUERY برای پرسش کاربر) دقت بازیابی در RAG را به‌طور محسوسی بهبود می‌دهد.',
+      'در Google Gen AI، مدل جدید gemini-embedding-2 علاوه بر متن از بردارسازی چندوجهی نیز پشتیبانی می‌کند و تعیین task_type (مانند RETRIEVAL_DOCUMENT و RETRIEVAL_QUERY) دقت بازیابی را به‌طور محسوسی افزایش می‌دهد.',
     ],
     blocks: [
       {
@@ -440,10 +470,10 @@ print("Count:", len(vectors), "| Dim:", len(vectors[0]))`,
       {
         provider: 'google',
         label: 'Google Gen AI SDK',
-        sublabel: 'تولید بردار با gemini-embedding-001 و task_type',
+        sublabel: 'تولید بردار با مدل جدید gemini-embedding-2 و task_type',
         language: 'python',
         code: `resp = client.models.embed_content(
-    model="gemini-embedding-001",
+    model="gemini-embedding-2",
     contents=[
         "راهنمای معماری سیستم‌های RAG",
         "بهینه‌سازی مصرف توکن در مدل‌های زبانی",
@@ -483,7 +513,7 @@ sem = asyncio.Semaphore(5)  # حداکثر ۵ درخواست موازی همزم
 async def ask_openai(prompt: str) -> str:
     async with sem:
         resp = await async_client.responses.create(
-            model="gpt-4.1-mini",
+            model="gpt-6-luna",
             input=prompt,
         )
         return resp.output_text
@@ -509,7 +539,7 @@ sem = asyncio.Semaphore(5)
 async def ask_gemini(prompt: str) -> str:
     async with sem:
         resp = await client.aio.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.8-flash",
             contents=prompt,
         )
         return resp.text
@@ -527,25 +557,26 @@ async def main():
     id: 'ch-18',
     number: 18,
     partId: 'part-5',
-    titleFa: 'کش کردن کانتکست (Context Caching)',
-    titleEn: 'Automatic Prefix Caching vs. Explicit Context Cache',
+    titleFa: 'کش کردن کانتکست (Context Caching & Extended Retention)',
+    titleEn: 'Automatic Prefix Caching (Up to 12h) vs. Explicit Context Cache',
     summary:
-      'کاهش شدید هزینه توکن‌های ورودی و کاهش تأخیر زمانی هنگام ارسال مکرر یک سند حجیم (مانند کتابچه راهنما، قرارداد چندصدصفحه‌ای یا پایگاه کد). در OpenAI کش پیشوندهای مشترک (۱۰۲۴ توکن به بالا) خودکار است و با prompt_cache_key بهینه می‌شود؛ در Google Gen AI علاوه بر کش خودکار (ضمنی)، می‌توانید با client.caches.create کش صریح با زمان نگهداری مشخص (TTL) بسازید.',
+      'کاهش تا ۹۵٪ هزینه توکن‌های ورودی و کاهش تأخیر زمانی هنگام ارسال مکرر اسناد حجیم. در OpenAI کش پیشوند خودکار است و با prompt_cache_key و prompt_cache_retention="12h" ماندگاری کش تا ۱۲ ساعت افزایش می‌یابد؛ در گوگل علاوه بر کش ضمنی، کش صریح با TTL مشخص وجود دارد.',
+    isExpanded: true,
     blocks: [
       {
         provider: 'openai',
-        label: 'OpenAI Responses API (Automatic Prefix Caching)',
-        sublabel: 'قرار دادن متن ثابت در ابتدای پرامپت + prompt_cache_key',
+        label: 'OpenAI Responses API (Prefix Caching + 12h Retention)',
+        sublabel: 'ثابت نگه داشتن پیشوند + prompt_cache_key + retention',
         language: 'python',
-        code: `# دستورالعمل و سند حجیم ثابت را همیشه در ابتدای پرامپت قرار دهید (>= 1024 توکن)
+        code: `# دستورالعمل و سند حجیم ثابت را در ابتدای پرامپت قرار دهید (>= 1024 توکن)
 large_context = open("company_handbook.txt", encoding="utf-8").read()
 
 response = client.responses.create(
-    model="gpt-4.1-mini",
+    model="gpt-6.2-sol",
     instructions=f"Answer strictly from this handbook:\\n\\n{large_context}",
     input="What is the remote work policy for engineers?",
-    # کلید مسیریابی اختیاری برای بیشینه‌سازی نرخ برخورد به کش (Cache Hit Rate)
     prompt_cache_key="handbook-v1",
+    prompt_cache_retention="12h",  # "30m" (پیش‌فرض) یا "12h"
 )
 
 print(response.output_text)
@@ -561,7 +592,7 @@ doc = client.files.upload(file="company_handbook.pdf")
 
 # ۲) ساخت کش صریح با اعتبار ۱ ساعته
 cache = client.caches.create(
-    model="gemini-2.5-flash",
+    model="gemini-4-hydrogen",
     config=types.CreateCachedContentConfig(
         display_name="handbook-cache-v1",
         system_instruction="Answer strictly based on the attached handbook.",
@@ -572,7 +603,7 @@ cache = client.caches.create(
 
 # ۳) استفاده مکرر از کش با تخفیف چشمگیر در هزینه ورودی
 response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-4-hydrogen",
     contents="What is the remote work policy for engineers?",
     config=types.GenerateContentConfig(cached_content=cache.name),
 )
@@ -591,13 +622,13 @@ client.caches.delete(name=cache.name)`,
     titleFa: 'پردازش انبوه با ۵۰٪ تخفیف (Batch API) و حالت پس‌زمینه',
     titleEn: 'Batch Processing (50% Discount) & Background Mode',
     summary:
-      'پردازش هزاران سند، فاکتور یا رکورد داده که نیاز به پاسخ آنی ندارند (تحویل ظرف حداکثر ۲۴ ساعت) با ۵۰ درصد کاهش هزینه و سقف سهمیه جداگانه. همچنین OpenAI برای کارهای طولانی ایجنتی حالت background=True را پشتیبانی می‌کند.',
+      'پردازش هزاران سند، فاکتور یا رکورد داده بدون نیاز به پاسخ آنی (تحویل تا ۲۴ ساعت) با ۵۰٪ تخفیف و سهمیه جداگانه. در OpenAI همچنین برای کارهای سنگین ایجنتی می‌توان از background=True با پنجره‌های تخفیف ۲ ساعته (۳۰٪) یا ۸ ساعته (۴۰٪) بهره برد.',
     isExpanded: true,
     blocks: [
       {
         provider: 'openai',
         label: 'OpenAI Responses API',
-        sublabel: 'JSONL Batch Job (۵۰٪ تخفیف) + Background Mode',
+        sublabel: 'JSONL Batch Job (۵۰٪ تخفیف) + Background Options (۳۰٪ تا ۴۰٪ تخفیف)',
         language: 'python',
         code: `import json
 
@@ -607,20 +638,20 @@ tasks = [
         "custom_id": "doc-1",
         "method": "POST",
         "url": "/v1/responses",
-        "body": {"model": "gpt-4.1-mini", "input": "Summarize report #1."},
+        "body": {"model": "gpt-6-luna", "input": "Summarize report #1."},
     },
     {
         "custom_id": "doc-2",
         "method": "POST",
         "url": "/v1/responses",
-        "body": {"model": "gpt-4.1-mini", "input": "Summarize report #2."},
+        "body": {"model": "gpt-6-luna", "input": "Summarize report #2."},
     },
 ]
 with open("batch_input.jsonl", "w", encoding="utf-8") as f:
     for row in tasks:
         f.write(json.dumps(row) + "\\n")
 
-# ۲) آپلود فایل و ثبت Batch Job
+# ۲) آپلود فایل و ثبت Batch Job (۵۰٪ تخفیف)
 with open("batch_input.jsonl", "rb") as f:
     batch_file = client.files.create(file=f, purpose="batch")
 
@@ -629,16 +660,20 @@ batch_job = client.batches.create(
     endpoint="/v1/responses",
     completion_window="24h",
 )
-print("Batch ID:", batch_job.id, "| Status:", batch_job.status)
 
-# ۳) بررسی وضعیت و دریافت خروجی پس از تکمیل
+# ۳) استعلام وضعیت و دریافت نتایج
 job = client.batches.retrieve(batch_job.id)
 if job.status == "completed":
     print(client.files.content(job.output_file_id).text)
 
-# نکته تکمیلی: برای تک‌درخواست‌های سنگین استدلالی از background=True استفاده کنید:
-# bg = client.responses.create(model="o3", input="...", background=True)
-# result = client.responses.retrieve(bg.id)`,
+# ۴) حالت پس‌زمینه (Background Mode) برای تک‌درخواست‌های سنگین استدلالی
+bg = client.responses.create(
+    model="gpt-6.2-astra",
+    input="Audit this distributed consensus design...",
+    background=True,
+    background_options={"completion_window": "2h"},  # "soonest" | "2h" | "8h"
+)
+# later: done = client.responses.retrieve(bg.id)`,
       },
       {
         provider: 'google',
@@ -660,7 +695,7 @@ inline_requests = [
 ]
 
 batch_job = client.batches.create(
-    model="gemini-2.5-flash",
+    model="gemini-3.8-flash",
     src=inline_requests,
     config={"display_name": "reports-batch-01"},
 )
@@ -700,7 +735,7 @@ if mod.results[0].flagged:
 
 # ۲) ارسال درخواست بدون ذخیره لاگ در سرورهای OpenAI
 resp = client.responses.create(
-    model="gpt-4.1-mini",
+    model="gpt-6.2-sol",
     input="تحلیل این گزارش داخلی...",
     store=False,  # جلوگیری از ذخیره وضعیت پاسخ در سرور
 )
@@ -712,7 +747,7 @@ print(resp.output_text)`,
         sublabel: 'تنظیم دقیق آستانه فیلترهای ایمنی با SafetySetting',
         language: 'python',
         code: `response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-4-hydrogen",
     contents="تحلیل گزارش خبری تاریخی...",
     config=types.GenerateContentConfig(
         safety_settings=[
@@ -769,7 +804,7 @@ def safe_openai_call(prompt: str, max_attempts: int = 5) -> str:
     for attempt in range(max_attempts):
         try:
             resp = client.responses.create(
-                model="gpt-4.1-mini",
+                model="gpt-6.2-sol",
                 input=prompt,
             )
             if resp.status != "completed":
@@ -807,7 +842,7 @@ def safe_gemini_call(prompt: str, max_attempts: int = 5) -> str:
     for attempt in range(max_attempts):
         try:
             resp = client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-4-hydrogen",
                 contents=prompt,
             )
             reason = resp.candidates[0].finish_reason
@@ -838,29 +873,29 @@ export const GOLDEN_TIPS: GoldenTip[] = [
   {
     id: 'tip-2',
     number: '۰۲',
-    title: 'تأثیر توکن‌های تفکر داخلی در Gemini 2.5',
-    body: 'توکن‌های تفکر داخلی (thinking_budget) از همان سقف max_output_tokens کسر می‌شوند؛ بنابراین در کارهای استخراج ساده، دسته‌بندی سریع یا خروجی‌های کوتاه، مقدار thinking_budget=0 بگذارید تا پاسخ قطع نشود و هزینه اضافه نپردازید.',
-    codeHint: 'thinking_config=types.ThinkingConfig(thinking_budget=0)',
+    title: 'تنظیم سطح تفکر در Gemini 4 و GPT-6.2 برای کنترل هزینه',
+    body: 'توکن‌های استدلال داخلی به‌عنوان توکن خروجی محاسبه می‌شوند و از سقف max_output_tokens کسر می‌گردند. در کارهای ساده و سریع، thinking_level="low" (در گوگل) یا reasoning={"effort": "low"} (در OpenAI) بگذارید و high/xhigh را برای مسائل پیچیده نگه دارید.',
+    codeHint: 'thinking_level="low"  |  reasoning={"effort": "low"}',
   },
   {
     id: 'tip-3',
     number: '۰۳',
-    title: 'حداقل سقف توکن در OpenAI Responses API',
-    body: 'مقدار max_output_tokens در Responses API نباید کمتر از ۱۶ باشد؛ در غیر این صورت بلافاصله با خطای اعتبارسنجی 400 BadRequestError مواجه می‌شوید.',
-    codeHint: 'max_output_tokens=16  # minimum allowed',
+    title: 'ثبات پیشوند پرامپت برای گرفتن تا ۹۵٪ تخفیف کش',
+    body: 'در OpenAI برای بهره‌مندی از تعرفه کش (تا ۹۵٪ ارزان‌تر در سری GPT-6.2)، دستورالعمل سیستم و کانتکست ثابت را در ابتدای پرامپت بدون تغییر نگه دارید و از prompt_cache_key به همراه prompt_cache_retention="12h" استفاده کنید.',
+    codeHint: 'prompt_cache_key="docs-v1", prompt_cache_retention="12h"',
   },
   {
     id: 'tip-4',
     number: '۰۴',
     title: 'کنترل کیفیت پیش از پارس JSON در محیط عملیاتی',
-    body: 'پیش از پارس کردن JSON یا ذخیره نتیجه در دیتابیس، همیشه کامل بودن پاسخ را بررسی کنید: در OpenAI مقدار response.status == "completed" و در Google مقدار finish_reason == FinishReason.STOP.',
+    body: 'پیش از پارس کردن JSON یا ذخیره نتیجه در دیتابیس، همیشه کامل بودن پاسخ را بررسی کنید: در OpenAI مقدار response.status == "completed" (با حداقل ۱۶ توکن خروجی) و در Google مقدار finish_reason == FinishReason.STOP.',
     codeHint: 'response.status == "completed"  |  FinishReason.STOP',
   },
   {
     id: 'tip-5',
     number: '۰۵',
-    title: 'بهینه‌سازی هوشمند هزینه در مقیاس بالا',
-    body: 'برای اسناد تمیز دیجیتالی از پارسرهای محلی رایگان (مانند pdfplumber یا PyMuPDF) استفاده کرده و تنها صفحات اسکن‌شده یا دارای جدول پیچیده را به مدل چندوجهی بفرستید. در پردازش‌های غیرآنی از Batch API (۵۰٪ تخفیف) و برای اسناد پرتکرار از Context Caching بهره ببرید.',
+    title: 'بهینه‌سازی هوشمند هزینه با معماری ترکیبی مدل‌ها',
+    body: 'برای اسناد تمیز دیجیتالی از پارسر محلی (pdfplumber) استفاده کنید و برای کارهای چندمرحله‌ای، طراحی را به مدل قوی‌تر (gpt-6.2-astra / gemini-4-carbon) و اجرا را به مدل سریع‌تر (gpt-6-luna / gemini-4-hydrogen) بسپارید. برای پردازش غیرآنی از Batch API (۵۰٪ تخفیف) بهره ببرید.',
   },
   {
     id: 'tip-6',

@@ -6,10 +6,13 @@ import {
   ChevronUp,
   Columns2,
   FileDown,
+  Maximize2,
   Menu,
+  Minimize2,
   Rows3,
   Search,
   Square,
+  Type,
   X,
 } from 'lucide-react';
 import {
@@ -23,14 +26,19 @@ import {
 } from './data/guideData';
 import { ViewMode } from './types/guide';
 import { THEMES, ThemeId } from './types/theme';
+import { CodeScale } from './components/CodeBlock';
 import { QuickReferenceTable } from './components/QuickReferenceTable';
 import { ChapterSection } from './components/ChapterSection';
 import { TocSidebar } from './components/TocSidebar';
 import { ThemeSwitcher } from './components/ThemeSwitcher';
 import { CommandPalette } from './components/CommandPalette';
+import { WorkbenchPanel, WorkbenchTab } from './components/WorkbenchPanel';
+import { PrintConfig } from './components/ExportStudio';
 
 const BOOKMARKS_KEY = 'llm-sdk-guide-bookmarks-v1';
 const CHECKLIST_KEY = 'llm-sdk-guide-checklist-v1';
+const NOTES_KEY = 'llm-sdk-guide-notes-v1';
+const MASTERED_KEY = 'llm-sdk-guide-mastered-v1';
 const THEME_KEY = 'llm-sdk-theme-v2';
 
 function getInitialTheme(): ThemeId {
@@ -49,6 +57,18 @@ export default function App() {
   const [lastLightTheme, setLastLightTheme] = useState<ThemeId>('editorial-light');
   const [lastDarkTheme, setLastDarkTheme] = useState<ThemeId>('obsidian-dark');
   const [viewMode, setViewMode] = useState<ViewMode>('side-by-side');
+  const [codeScale, setCodeScale] = useState<CodeScale>('md');
+  const [focusMode, setFocusMode] = useState(false);
+
+  const [workbenchOpen, setWorkbenchOpen] = useState(true);
+  const [workbenchTab, setWorkbenchTab] = useState<WorkbenchTab>('scaffolder');
+
+  const [printConfig, setPrintConfig] = useState<PrintConfig>({
+    includeQuickRef: true,
+    includePersonalNotes: true,
+    onlyBookmarkedInPrint: false,
+  });
+
   const [searchQuery, setSearchQuery] = useState('');
   const [onlyBookmarked, setOnlyBookmarked] = useState(false);
   const [showAuditLog, setShowAuditLog] = useState(false);
@@ -64,6 +84,24 @@ export default function App() {
       return saved ? (JSON.parse(saved) as string[]) : ['ch-7', 'ch-9', 'ch-15'];
     } catch {
       return ['ch-7', 'ch-9', 'ch-15'];
+    }
+  });
+
+  const [masteredIds, setMasteredIds] = useState<string[]>(() => {
+    try {
+      const saved = window.localStorage.getItem(MASTERED_KEY);
+      return saved ? (JSON.parse(saved) as string[]) : ['ch-1', 'ch-2'];
+    } catch {
+      return ['ch-1', 'ch-2'];
+    }
+  });
+
+  const [personalNotes, setPersonalNotes] = useState<Record<string, string>>(() => {
+    try {
+      const saved = window.localStorage.getItem(NOTES_KEY);
+      return saved ? (JSON.parse(saved) as Record<string, string>) : {};
+    } catch {
+      return {};
     }
   });
 
@@ -104,25 +142,71 @@ export default function App() {
 
   useEffect(() => {
     try {
+      window.localStorage.setItem(MASTERED_KEY, JSON.stringify(masteredIds));
+    } catch {
+      // ignore
+    }
+  }, [masteredIds]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(NOTES_KEY, JSON.stringify(personalNotes));
+    } catch {
+      // ignore
+    }
+  }, [personalNotes]);
+
+  useEffect(() => {
+    try {
       window.localStorage.setItem(CHECKLIST_KEY, JSON.stringify(checkedTips));
     } catch {
       // ignore
     }
   }, [checkedTips]);
 
-  // Global Ctrl+K / Cmd+K shortcut for Command Palette
+  const handleToggleDarkMode = () => {
+    const current = THEMES.find((t) => t.id === theme) ?? THEMES[0];
+    setTheme(current.mode === 'dark' ? lastLightTheme : lastDarkTheme);
+  };
+
+  // Global keyboard ergonomics: Ctrl+K (search), F (focus mode), D (dark mode), J/K (chapter nav)
   useEffect(() => {
+    const chapterIds = [...ALL_CHAPTERS.map((c) => c.id), 'ch-22'];
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setCmdOpen((v) => !v);
+        return;
+      }
+
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || cmdOpen) return;
+
+      const key = e.key.toLowerCase();
+      if (key === 'f' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        setFocusMode((v) => !v);
+      } else if (key === 'd' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        handleToggleDarkMode();
+      } else if (key === 'j' || key === 'k') {
+        const curIdx = chapterIds.indexOf(activeId);
+        const nextIdx =
+          key === 'j'
+            ? Math.min(chapterIds.length - 1, curIdx + 1)
+            : Math.max(0, curIdx <= 0 ? 0 : curIdx - 1);
+        const target = document.getElementById(chapterIds[nextIdx]);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          setActiveId(chapterIds[nextIdx]);
+        }
       }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [activeId, cmdOpen, theme, lastLightTheme, lastDarkTheme]);
 
-  // Reading depth progress bar + mobile back-to-top visibility
+  // Reading depth progress bar + mobile back-to-top
   useEffect(() => {
     const onScroll = () => {
       const doc = document.documentElement;
@@ -136,7 +220,6 @@ export default function App() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Lock body scroll while mobile slide-over TOC drawer is open
   useEffect(() => {
     document.body.style.overflow = mobileTocOpen ? 'hidden' : '';
     return () => {
@@ -144,21 +227,45 @@ export default function App() {
     };
   }, [mobileTocOpen]);
 
-  const handleToggleDarkMode = () => {
-    const current = THEMES.find((t) => t.id === theme) ?? THEMES[0];
-    setTheme(current.mode === 'dark' ? lastLightTheme : lastDarkTheme);
-  };
-
   const toggleBookmark = (id: string) => {
     setBookmarks((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
 
+  const toggleMastered = (id: string) => {
+    setMasteredIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const updateNote = (id: string, value: string) => {
+    setPersonalNotes((prev) => {
+      const next = { ...prev };
+      if (value.trim() === '') delete next[id];
+      else next[id] = value;
+      return next;
+    });
+  };
+
   const toggleTipCheck = (id: string) => {
     setCheckedTips((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
+  };
+
+  const handleImportBackup = (data: {
+    bookmarks?: string[];
+    personalNotes?: Record<string, string>;
+    masteredIds?: string[];
+  }) => {
+    if (data.bookmarks) setBookmarks(data.bookmarks);
+    if (data.personalNotes) setPersonalNotes(data.personalNotes);
+    if (data.masteredIds) setMasteredIds(data.masteredIds);
+  };
+
+  const cycleCodeScale = () => {
+    setCodeScale((prev) => (prev === 'sm' ? 'md' : prev === 'md' ? 'lg' : 'sm'));
   };
 
   const filteredChapters = useMemo(() => {
@@ -170,6 +277,7 @@ export default function App() {
         ch.titleFa,
         ch.titleEn,
         ch.summary,
+        personalNotes[ch.id] ?? '',
         ...(ch.notes ?? []),
         ...ch.blocks.map((b) => `${b.label} ${b.code}`),
       ]
@@ -177,7 +285,7 @@ export default function App() {
         .toLowerCase();
       return hay.includes(q);
     });
-  }, [searchQuery, onlyBookmarked, bookmarks]);
+  }, [searchQuery, onlyBookmarked, bookmarks, personalNotes]);
 
   const filteredQuickRows = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -233,7 +341,7 @@ export default function App() {
         color: 'var(--text-primary)',
       }}
     >
-      {/* Top Bar Contract: Strict 3-zone, single-row, compact on mobile (< 15% cap) */}
+      {/* Top Bar Contract: Strict 3-zone, single-row */}
       <header
         className="no-print sticky top-0 z-30 border-b backdrop-blur-md"
         style={{
@@ -251,7 +359,7 @@ export default function App() {
             راهنمای جامع LLM SDKs
           </a>
 
-          {/* Zone 2: 4 clean single-line text links */}
+          {/* Zone 2: 4 clean single-line nav links */}
           <nav
             aria-label="ناوبری اصلی"
             className="hidden md:flex items-center gap-6 text-sm font-medium"
@@ -283,13 +391,15 @@ export default function App() {
             </a>
           </nav>
 
-          {/* Zone 3: 1 primary CTA (plus compact mobile TOC trigger) */}
+          {/* Zone 3: 1 primary CTA (+ mobile menu trigger) */}
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => setMobileTocOpen(true)}
               aria-label="باز کردن فهرست مطالب"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md border lg:hidden"
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-md border ${
+                focusMode ? '' : 'lg:hidden'
+              }`}
               style={{
                 borderColor: 'var(--border-subtle)',
                 backgroundColor: 'var(--bg-surface)',
@@ -315,11 +425,7 @@ export default function App() {
         </div>
 
         {/* Reading Depth Progress Hairline */}
-        <div
-          aria-hidden="true"
-          className="h-[2px] w-full"
-          style={{ backgroundColor: 'transparent' }}
-        >
+        <div aria-hidden="true" className="h-[2px] w-full">
           <div
             className="h-full transition-[width] duration-150"
             style={{
@@ -330,13 +436,13 @@ export default function App() {
         </div>
       </header>
 
-      {/* Mobile Slide-Over TOC Sheet */}
+      {/* Slide-Over TOC Sheet (Mobile + Focus Mode) */}
       {mobileTocOpen && (
         <div
-          className="no-print fixed inset-0 z-50 flex lg:hidden"
+          className="no-print fixed inset-0 z-50 flex"
           role="dialog"
           aria-modal="true"
-          aria-label="فهرست مطالب موبایل"
+          aria-label="فهرست مطالب"
         >
           <div
             className="fixed inset-0 bg-black/55 backdrop-blur-xs"
@@ -377,6 +483,8 @@ export default function App() {
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
               bookmarks={bookmarks}
+              masteredIds={masteredIds}
+              personalNotes={personalNotes}
               onlyBookmarked={onlyBookmarked}
               onToggleOnlyBookmarked={() => setOnlyBookmarked((v) => !v)}
               onNavigate={handleNavigate}
@@ -395,34 +503,42 @@ export default function App() {
         onNavigate={handleNavigate}
       />
 
-      {/* Full-Bleed Architectural Two-Column Grid */}
-      <div className="mx-auto flex max-w-[1440px] flex-col lg:flex-row print:block print:max-w-none">
-        {/* Sticky Editorial Index Rail (Desktop only) */}
-        <aside
-          aria-label="فهرست مطالب راهنما"
-          className="no-print hidden lg:sticky lg:top-14 lg:block lg:h-[calc(100vh-3.5rem)] lg:w-76 lg:shrink-0 lg:overflow-y-auto lg:border-l lg:px-6"
-          style={{ borderColor: 'var(--border-subtle)' }}
-        >
-          <TocSidebar
-            parts={GUIDE_PARTS}
-            chapters={filteredChapters}
-            activeId={activeId}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            bookmarks={bookmarks}
-            onlyBookmarked={onlyBookmarked}
-            onToggleOnlyBookmarked={() => setOnlyBookmarked((v) => !v)}
-            onNavigate={handleNavigate}
-          />
-        </aside>
+      {/* Full-Bleed Architectural Layout */}
+      <div
+        className={`mx-auto flex flex-col lg:flex-row print:block print:max-w-none ${
+          focusMode ? 'max-w-5xl' : 'max-w-[1440px]'
+        }`}
+      >
+        {/* Sticky Editorial Index Rail (hidden in Focus Mode & mobile) */}
+        {!focusMode && (
+          <aside
+            aria-label="فهرست مطالب راهنما"
+            className="no-print hidden lg:sticky lg:top-14 lg:block lg:h-[calc(100vh-3.5rem)] lg:w-76 lg:shrink-0 lg:overflow-y-auto lg:border-l lg:px-6"
+            style={{ borderColor: 'var(--border-subtle)' }}
+          >
+            <TocSidebar
+              parts={GUIDE_PARTS}
+              chapters={filteredChapters}
+              activeId={activeId}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              bookmarks={bookmarks}
+              masteredIds={masteredIds}
+              personalNotes={personalNotes}
+              onlyBookmarked={onlyBookmarked}
+              onToggleOnlyBookmarked={() => setOnlyBookmarked((v) => !v)}
+              onNavigate={handleNavigate}
+            />
+          </aside>
+        )}
 
         {/* Main Monograph Reading Canvas */}
         <main className="min-w-0 flex-1 px-4 py-7 sm:px-8 sm:py-10 lg:px-12 lg:py-12 print:p-0">
           {/* Page 1: Swiss-Persian Monograph Masthead + Complete Initial TOC */}
           <section id="toc-section" className="print-break-after pb-10 print:pb-0">
-            {/* Editorial Masthead */}
+            {/* Editorial Masthead with Architectural Drafting Marks */}
             <div
-              className="border-b pb-8 print:pb-5"
+              className="relative border-b pb-8 print:pb-5"
               style={{ borderColor: 'var(--border-strong)' }}
             >
               <div
@@ -434,11 +550,11 @@ export default function App() {
                 </span>
                 <span aria-hidden="true">·</span>
                 <span dir="ltr" className="font-mono text-[11px]">
-                  OpenAI Responses API vs Google Gen AI SDK
+                  OpenAI Responses API (GPT-6.2) vs Google Gen AI SDK (Gemini 4)
                 </span>
                 <span aria-hidden="true">·</span>
                 <span className="tabular-nums">
-                  {toPersianDigits(TOTAL_CHAPTER_COUNT)} فصل عملیاتی
+                  {toPersianDigits(TOTAL_CHAPTER_COUNT)} فصل عملیاتی · همگام با مستندات رسمی ۲۰۲۶
                 </span>
               </div>
 
@@ -474,8 +590,8 @@ export default function App() {
                     >
                       google-genai
                     </code>{' '}
-                    (کتابخانه بومی Gemini). در هر فصل ابتدا کاربرد و نکات مهندسی بیان شده و سپس
-                    کد استاندارد و آماده اجرای هر دو کتابخانه کنار هم قرار گرفته است.
+                    (کتابخانه بومی Gemini). همراه با میز کار تعاملی برای ساخت کد، تبدیل سینتکس،
+                    محاسبه هزینه و چاپ استاندارد A4.
                   </p>
                 </div>
 
@@ -512,25 +628,25 @@ export default function App() {
                     </dd>
                   </div>
                   <div>
-                    <dt style={{ color: 'var(--text-muted)' }}>نسخه خروجی</dt>
+                    <dt style={{ color: 'var(--text-muted)' }}>میانبرهای کلیدی</dt>
                     <dd
-                      className="mt-0.5 font-semibold"
+                      dir="ltr"
+                      className="mt-0.5 text-right font-mono text-[11px] font-semibold"
                       style={{ color: 'var(--text-primary)' }}
                     >
-                      وب تعاملی + PDF استاندارد A4
+                      Ctrl+K · J/K · F · D
                     </dd>
                   </div>
                 </dl>
               </div>
             </div>
 
-            {/* Workspace Studio Bar (Theme, Dark Mode, Instant Search Ctrl+K, Layout Mode, Audit Log) */}
+            {/* Workspace Studio Bar (Search, Themes, Focus Mode, Code Font Size, View Mode) */}
             <div
               className="no-print flex flex-wrap items-center justify-between gap-3 border-b py-4"
               style={{ borderColor: 'var(--border-subtle)' }}
             >
               <div className="flex flex-wrap items-center gap-2">
-                {/* Command Palette Search Trigger */}
                 <button
                   type="button"
                   onClick={() => setCmdOpen(true)}
@@ -556,12 +672,51 @@ export default function App() {
                   </kbd>
                 </button>
 
-                {/* Day/Night + 4-Theme Editorial Picker */}
                 <ThemeSwitcher
                   theme={theme}
                   onSelectTheme={setTheme}
                   onToggleDarkMode={handleToggleDarkMode}
                 />
+
+                {/* Focus Mode Toggle */}
+                <button
+                  type="button"
+                  onClick={() => setFocusMode((v) => !v)}
+                  aria-pressed={focusMode}
+                  title="حالت تمرکز مطالعه (کلید F)"
+                  className="hidden h-9 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors lg:inline-flex whitespace-nowrap"
+                  style={{
+                    borderColor: focusMode ? 'var(--accent)' : 'var(--border-subtle)',
+                    backgroundColor: focusMode ? 'var(--accent-soft)' : 'var(--bg-surface)',
+                    color: focusMode ? 'var(--accent)' : 'var(--text-secondary)',
+                  }}
+                >
+                  {focusMode ? (
+                    <Minimize2 className="h-3.5 w-3.5" />
+                  ) : (
+                    <Maximize2 className="h-3.5 w-3.5" />
+                  )}
+                  <span>{focusMode ? 'خروج از تمرکز' : 'حالت تمرکز'}</span>
+                </button>
+
+                {/* Code Font Size Cycler */}
+                <button
+                  type="button"
+                  onClick={cycleCodeScale}
+                  title="تغییر اندازه فونت کدها"
+                  className="inline-flex h-9 items-center gap-1.5 rounded-md border px-2.5 text-xs font-medium transition-colors whitespace-nowrap"
+                  style={{
+                    borderColor: 'var(--border-subtle)',
+                    backgroundColor: 'var(--bg-surface)',
+                    color: 'var(--text-secondary)',
+                  }}
+                >
+                  <Type className="h-3.5 w-3.5" />
+                  <span>
+                    فونت کد:{' '}
+                    {codeScale === 'sm' ? 'کوچک' : codeScale === 'lg' ? 'بزرگ' : 'متوسط'}
+                  </span>
+                </button>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
@@ -646,7 +801,7 @@ export default function App() {
                     color: showAuditLog ? 'var(--accent)' : 'var(--text-secondary)',
                   }}
                 >
-                  <span>اصلاحات و حفره‌های تکمیل‌شده</span>
+                  <span>اصلاحات فایل اصلی</span>
                   {showAuditLog ? (
                     <ChevronUp className="h-3.5 w-3.5" />
                   ) : (
@@ -656,7 +811,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Expandable Audit & Gap-Filling Summary */}
+            {/* Expandable Audit Summary */}
             {showAuditLog && (
               <div
                 className="no-print mt-4 border p-5"
@@ -665,10 +820,7 @@ export default function App() {
                   backgroundColor: 'var(--bg-surface)',
                 }}
               >
-                <h2
-                  className="text-sm font-bold"
-                  style={{ color: 'var(--text-primary)' }}
-                >
+                <h2 className="text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
                   گزارش بازطراحی PDF اصلی و تکمیل حفره‌ها بر اساس مستندات رسمی
                 </h2>
                 <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -705,6 +857,22 @@ export default function App() {
               </div>
             )}
 
+            {/* Interactive Engineering Workbench (Scaffolder, Translator, API Cost Estimator, Architecture Explorer, Export Studio) */}
+            <WorkbenchPanel
+              open={workbenchOpen}
+              activeTab={workbenchTab}
+              theme={theme}
+              onToggleOpen={() => setWorkbenchOpen((v) => !v)}
+              onSelectTab={setWorkbenchTab}
+              onNavigate={handleNavigate}
+              printConfig={printConfig}
+              onChangePrintConfig={setPrintConfig}
+              bookmarks={bookmarks}
+              personalNotes={personalNotes}
+              masteredIds={masteredIds}
+              onImportBackup={handleImportBackup}
+            />
+
             {/* Complete Clickable Initial Table of Contents (Cover Page 1 in Print) */}
             <div className="mt-8 print:mt-5">
               <div
@@ -717,10 +885,7 @@ export default function App() {
                 >
                   فهرست مطالب
                 </h2>
-                <span
-                  className="text-xs tabular-nums"
-                  style={{ color: 'var(--text-muted)' }}
-                >
+                <span className="text-xs tabular-nums" style={{ color: 'var(--text-muted)' }}>
                   مرجع سریع + {toPersianDigits(TOTAL_CHAPTER_COUNT)} فصل در ۵ بخش
                 </span>
               </div>
@@ -811,10 +976,12 @@ export default function App() {
 
           {/* Quick Reference Table */}
           {!onlyBookmarked && filteredQuickRows.length > 0 && (
-            <QuickReferenceTable
-              rows={filteredQuickRows}
-              onJumpToChapter={handleNavigate}
-            />
+            <div className={printConfig.includeQuickRef ? '' : 'print:hidden'}>
+              <QuickReferenceTable
+                rows={filteredQuickRows}
+                onJumpToChapter={handleNavigate}
+              />
+            </div>
           )}
 
           {/* Active Filter Empty State */}
@@ -852,17 +1019,21 @@ export default function App() {
               const partChapters = filteredChapters.filter((c) => c.partId === part.id);
               if (partChapters.length === 0) return null;
 
+              const hasAnyPrintableChapter =
+                !printConfig.onlyBookmarkedInPrint ||
+                partChapters.some((ch) => bookmarks.includes(ch.id));
+
               return (
-                <section key={part.id} id={part.id} className="mt-10 print:mt-4">
-                  {/* Architectural Part Divider (No heavy floating card) */}
+                <section
+                  key={part.id}
+                  id={part.id}
+                  className={`mt-10 print:mt-4 ${hasAnyPrintableChapter ? '' : 'print:hidden'}`}
+                >
                   <div
                     className="border-t-2 pt-6 pb-4 print:break-after-avoid print:pt-3 print:pb-2"
                     style={{ borderColor: 'var(--text-primary)' }}
                   >
-                    <p
-                      className="text-xs font-bold"
-                      style={{ color: 'var(--accent)' }}
-                    >
+                    <p className="text-xs font-bold" style={{ color: 'var(--accent)' }}>
                       {part.number}
                     </p>
                     <h2
@@ -885,8 +1056,17 @@ export default function App() {
                         key={chapter.id}
                         chapter={chapter}
                         viewMode={viewMode}
+                        codeScale={codeScale}
                         isBookmarked={bookmarks.includes(chapter.id)}
+                        isMastered={masteredIds.includes(chapter.id)}
+                        personalNote={personalNotes[chapter.id] ?? ''}
+                        includeNoteInPrint={printConfig.includePersonalNotes}
+                        hideInPrint={
+                          printConfig.onlyBookmarkedInPrint && !bookmarks.includes(chapter.id)
+                        }
                         onToggleBookmark={toggleBookmark}
+                        onToggleMastered={toggleMastered}
+                        onUpdateNote={updateNote}
                       />
                     ))}
                   </div>
@@ -1013,14 +1193,14 @@ export default function App() {
                 راهنمای جامع LLM SDKs — مرجع مقایسه‌ای OpenAI Responses API و Google Gen AI SDK
               </p>
               <p className="no-print">
-                برای چاپ تمیز A4 در مرورگر گزینه Save as PDF و Background graphics را فعال کنید.
+                میانبرها: Ctrl+K جستجو · J/K جابه‌جایی فصل · F تمرکز · D دارک مود
               </p>
             </div>
           </footer>
         </main>
       </div>
 
-      {/* Compact Mobile Thumb Actions (Only when scrolled; hidden on desktop & print) */}
+      {/* Compact Mobile Thumb Actions */}
       {showBackTop && (
         <div className="no-print fixed bottom-4 left-4 z-30 flex items-center gap-2 lg:hidden">
           <button

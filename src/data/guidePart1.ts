@@ -5,7 +5,7 @@ export const GUIDE_PARTS: GuidePart[] = [
     id: 'part-1',
     number: 'بخش اول',
     titleFa: 'شروع سریع، پیکربندی و کنترل توکن‌ها',
-    subtitle: 'نصب، احراز هویت امن، پرامپت پایه، نقش سیستم، شمارش توکن و انتخاب مدل',
+    subtitle: 'نصب، احراز هویت امن، پرامپت پایه، نقش سیستم، شمارش توکن و انتخاب مدل‌های ۲۰۲۶',
   },
   {
     id: 'part-2',
@@ -17,52 +17,52 @@ export const GUIDE_PARTS: GuidePart[] = [
     id: 'part-3',
     number: 'بخش سوم',
     titleFa: 'مکالمه، استریم لحظه‌ای و استدلال عمیق',
-    subtitle: 'حافظه چت سمت سرور و کلاینت، استریم با Context Manager و کنترل تفکر داخلی',
+    subtitle: 'حافظه چت، Interactions API، استریم با Context Manager و سطوح تفکر جدید',
   },
   {
     id: 'part-4',
     number: 'بخش چهارم',
-    titleFa: 'ابزارها، جستجوی زنده، ایجنت‌ها و بردارها',
-    subtitle: 'جستجوی وب با استناد، اجرای کد و URL، چرخه کامل Function Calling و Embeddings',
+    titleFa: 'ابزارها، MCP، جستجوی زنده و بردارها',
+    subtitle: 'جستجوی وب با استناد، File Search، Remote MCP، چرخه Function Calling و Embeddings',
   },
   {
     id: 'part-5',
     number: 'بخش پنجم',
     titleFa: 'مقیاس‌پذیری، بهینه‌سازی هزینه و محیط عملیاتی',
-    subtitle: 'اجرای ناهمزمان کنترل‌شده، کش کانتکست، Batch API، ایمنی، Retry و چک‌لیست نهایی',
+    subtitle: 'اجرای Async با Semaphore، کش ۱۲ ساعته، Batch/Background، ایمنی، Retry و چک‌لیست نهایی',
   },
 ];
 
 export const AUDIT_CHANGES: AuditChange[] = [
   {
+    category: 'تکمیل حفره فنی',
+    title: 'به‌روزرسانی کامل مدل‌ها به نسل ۲۰۲۶ (GPT-6.2 و Gemini 4 / 3.8 Flash)',
+    detail:
+      'تمامی مثال‌ها، جدول انتخاب مدل و ماشین‌حساب هزینه بر اساس مستندات رسمی OpenAI (gpt-6-luna، gpt-6.1-terra، gpt-6.2-sol، gpt-6.2-astra) و Google AI Studio (gemini-3.8-flash، gemini-4-hydrogen، gemini-4-carbon، gemini-4-neon و gemini-embedding-2) به‌روزرسانی شدند.',
+  },
+  {
+    category: 'تکمیل حفره فنی',
+    title: 'افزودن Interactions API گوگل، thinking_level و Remote MCP در OpenAI',
+    detail:
+      'پشتیبانی از client.interactions.create با previous_interaction_id (و جابه‌جایی میان‌مدلی Carbon به Hydrogen)، پارامتر جدید thinking_level ("low" تا "xhigh")، ابزار file_search هر دو سرویس، prompt_cache_retention="12h" و ابزار بومی MCP اضافه شد.',
+  },
+  {
     category: 'اصلاح نگارشی و صفحه‌آرایی',
     title: 'رفع کامل باگ‌های چاپی، دوجهته (RTL/LTR) و شماره‌گذاری صفحات',
     detail:
-      'حذف ستاره‌های خام مارک‌داون (**...**) در صفحات ۱، ۱۳، ۱۴ و ۱۵؛ اصلاح شماره صفحات معکوس (۴۱ و ۵۱ در فایل اصلی)؛ رفع هم‌پوشانی متن جدول مرجع سریع؛ ایزوله‌سازی کدهای انگلیسی برای جلوگیری از برعکس شدن پرانتزها و جلوگیری از شکسته شدن بلوک‌های کد میان صفحات.',
+      'حذف ستاره‌های خام مارک‌داون (**...**) در صفحات فایل اصلی، اصلاح شماره صفحات معکوس (۴۱ و ۵۱)، رفع هم‌پوشانی جدول مرجع سریع، ایزوله‌سازی کدهای انگلیسی و جلوگیری از شکستن بلوک‌های کد در چاپ PDF.',
   },
   {
     category: 'تکمیل حفره فنی',
-    title: 'تکمیل چرخه کامل Function Calling (رفت‌وبرگشت)',
+    title: 'چرخه کامل Function Calling، استخراج Citations و آپلود فایل حجیم',
     detail:
-      'در نسخه قبلی، مثال OpenAI فقط درخواست تابع را چاپ می‌کرد. اکنون اجرای محلی تابع و بازگرداندن خروجی با function_call_output و call_id، و در Gemini تفاوت حالت خودکار با حالت دستی (disable=True + Part.from_function_response) اضافه شده است.',
-  },
-  {
-    category: 'تکمیل حفره فنی',
-    title: 'استخراج منابع جستجوی وب (Citations) و خلاصه افکار (Thought Summary)',
-    detail:
-      'نحوه استخراج لینک‌ها و عناوین منابع از annotations در OpenAI و grounding_metadata.grounding_chunks در Gemini، همچنین مشاهده خلاصه تفکر (include_thoughts و reasoning summary) و توکن‌های تفکر اضافه شد.',
-  },
-  {
-    category: 'تکمیل حفره فنی',
-    title: 'آپلود PDF حجیم در OpenAI، استریم با Context Manager و Async Semaphore',
-    detail:
-      'روش client.files.create + file_id برای PDFهای بزرگ در OpenAI، استفاده از with client.responses.stream() همراه با get_final_response()، شمارش توکن پیش از ارسال (count_tokens) و مدیریت همزمانی با asyncio.Semaphore اضافه شد.',
+      'بازگرداندن خروجی تابع با function_call_output و call_id در OpenAI، حالت دستی در Gemini (disable=True + Part.from_function_response)، استخراج لینک منابع از annotations و grounding_metadata و آپلود PDF حجیم با Files API تکمیل شد.',
   },
   {
     category: 'فصل جدید افزوده‌شده',
-    title: '۴ فصل ضروری جدید: صوت و ویدیو، اجرای کد/URL، Embeddings و ایمنی/حریم خصوصی',
+    title: '۴ فصل جدید: صوت و ویدیو، Code/URL/MCP/FileSearch، Embeddings و ایمنی',
     detail:
-      'بر اساس مستندات رسمی OpenAI Responses API و Google Gen AI SDK، فصل‌های پردازش صوت و ویدیو، ابزارهای Code Interpreter / Code Execution / URL Context، تولید Embeddings برای RAG و تنظیمات Safety و store=False اضافه شدند.',
+      'فصل‌های پردازش بومی صوت و ویدیو، ابزارهای پیشرفته (Code Interpreter / URL Context / File Search / MCP)، بردارهای معنایی (gemini-embedding-2) و تنظیمات SafetySetting و store=False اضافه شدند.',
   },
 ];
 
@@ -94,14 +94,14 @@ export const QUICK_REF_ROWS: QuickRefRow[] = [
     chapterId: 'ch-2',
     chapterNumber: 2,
     openaiCode: 'client.responses.create(...)',
-    googleCode: 'client.models.generate_content(...)',
+    googleCode: 'client.models.generate_content(...)\nیا client.interactions.create(...)',
   },
   {
     operation: 'دسترسی به متن خروجی',
     chapterId: 'ch-2',
     chapterNumber: 2,
     openaiCode: 'response.output_text',
-    googleCode: 'response.text',
+    googleCode: 'response.text\n(در Interactions: interaction.output_text)',
   },
   {
     operation: 'تنظیم نقش سیستم و پارامترها',
@@ -127,11 +127,11 @@ export const QUICK_REF_ROWS: QuickRefRow[] = [
     googleCode: 'response.usage_metadata\nclient.models.count_tokens(...)',
   },
   {
-    operation: 'لیست مدل‌های در دسترس',
+    operation: 'مدل‌های پیشنهادی ۲۰۲۶',
     chapterId: 'ch-5',
     chapterNumber: 5,
-    openaiCode: 'client.models.list()  # m.id',
-    googleCode: 'client.models.list()  # m.name',
+    openaiCode: 'gpt-6-luna · gpt-6.1-terra\ngpt-6.2-sol · gpt-6.2-astra',
+    googleCode: 'gemini-3.8-flash · gemini-4-hydrogen\ngemini-4-carbon · gemini-4-neon',
   },
   {
     operation: 'ارسال تصویر و PDF بومی',
@@ -144,7 +144,7 @@ export const QUICK_REF_ROWS: QuickRefRow[] = [
     operation: 'پردازش صوت و ویدیو',
     chapterId: 'ch-8',
     chapterNumber: 8,
-    openaiCode: 'client.audio.transcriptions.create(...)\nیا input_audio در مدل‌های صوتی',
+    openaiCode: 'client.audio.transcriptions.create(...)\n+ تحلیل در responses.create',
     googleCode: 'client.files.upload(file="video.mp4")\nیا Part.from_bytes(mime_type="audio/mp3")',
   },
   {
@@ -155,13 +155,13 @@ export const QUICK_REF_ROWS: QuickRefRow[] = [
     googleCode: 'GenerateContentConfig(\n  response_mime_type="application/json",\n  response_schema=Schema\n)  # response.parsed',
   },
   {
-    operation: 'مکالمه چندمرحله‌ای (Chat)',
+    operation: 'مکالمه چندمرحله‌ای و حالت سرور',
     chapterId: 'ch-10',
     chapterNumber: 10,
     openaiCode: 'previous_response_id=resp1.id',
-    openaiNote: 'مدیریت وضعیت سمت سرور (یا ارسال دستی با store=False)',
-    googleCode: 'chat = client.chats.create(...)\nchat.send_message(...)',
-    googleNote: 'مدیریت تاریخچه سمت کلاینت',
+    openaiNote: 'یا حالت بدون ذخیره با store=False',
+    googleCode: 'client.interactions.create(previous_interaction_id=...)\nیا client.chats.create()',
+    googleNote: 'پشتیبانی از حالت سرور (Interactions) و کلاینت (Chats)',
   },
   {
     operation: 'پاسخ‌دهی جریانی (Streaming)',
@@ -177,7 +177,8 @@ export const QUICK_REF_ROWS: QuickRefRow[] = [
     chapterId: 'ch-12',
     chapterNumber: 12,
     openaiCode: 'reasoning={"effort": "medium", "summary": "auto"}',
-    googleCode: 'thinking_config=types.ThinkingConfig(\n  thinking_budget=2048,\n  include_thoughts=True\n)',
+    googleCode: 'thinking_config=types.ThinkingConfig(\n  thinking_level="high",\n  include_thoughts=True\n)',
+    googleNote: 'low | medium | high | xhigh (در Gemini 4)',
   },
   {
     operation: 'جستجوی وب داخلی + استنادها',
@@ -189,11 +190,11 @@ export const QUICK_REF_ROWS: QuickRefRow[] = [
     googleNote: 'منابع در grounding_metadata',
   },
   {
-    operation: 'اجرای کد و خواندن لینک (URL)',
+    operation: 'اجرای کد، File Search، URL و MCP',
     chapterId: 'ch-14',
     chapterNumber: 14,
-    openaiCode: 'tools=[{"type": "code_interpreter", "container": {"type": "auto"}}]',
-    googleCode: 'Tool(code_execution=ToolCodeExecution())\nTool(url_context=UrlContext())',
+    openaiCode: 'type: "code_interpreter" | "file_search" | "mcp"',
+    googleCode: 'ToolCodeExecution() · UrlContext()\nclient.file_search_stores + interactions',
   },
   {
     operation: 'فراخوانی توابع سفارشی (Tools)',
@@ -207,7 +208,8 @@ export const QUICK_REF_ROWS: QuickRefRow[] = [
     chapterId: 'ch-16',
     chapterNumber: 16,
     openaiCode: 'client.embeddings.create(model="text-embedding-3-small", ...)',
-    googleCode: 'client.models.embed_content(model="gemini-embedding-001", ...)',
+    googleCode: 'client.models.embed_content(model="gemini-embedding-2", ...)',
+    googleNote: 'پشتیبانی متنی و چندوجهی',
   },
   {
     operation: 'اجرای غیرهمزمان (Async)',
@@ -221,14 +223,14 @@ export const QUICK_REF_ROWS: QuickRefRow[] = [
     operation: 'کش کردن کانتکست (Context Caching)',
     chapterId: 'ch-18',
     chapterNumber: 18,
-    openaiCode: 'خودکار (حداقل ۱۰۲۴ توکن) + prompt_cache_key',
+    openaiCode: 'خودکار + prompt_cache_key\n+ prompt_cache_retention="12h"',
     googleCode: 'کش ضمنی خودکار + کش صریح با\nclient.caches.create(..., ttl="3600s")',
   },
   {
-    operation: 'پردازش انبوه (۵۰٪ تخفیف) و خطای 429',
+    operation: 'پردازش انبوه (۵۰٪ تخفیف) و Background',
     chapterId: 'ch-19',
     chapterNumber: 19,
-    openaiCode: 'client.batches.create(endpoint="/v1/responses")\nRateLimitError + max_retries',
+    openaiCode: 'client.batches.create(...) | background=True\nbackground_options={"completion_window": "2h"}',
     googleCode: 'client.batches.create(src=...)\nerrors.APIError (e.code == 429)',
   },
 ];
@@ -241,9 +243,9 @@ export const CHAPTERS_PART_1: Chapter[] = [
     titleFa: 'نصب، احراز هویت و ساخت کلاینت',
     titleEn: 'Installation, Authentication & Client Setup',
     summary:
-      'نصب آخرین نسخه کتابخانه‌های رسمی و اتصال امن به سرور بدون نوشتن مستقیم کلید API در فایل‌های کد. همیشه کلیدها را از طریق متغیرهای محیطی سیستم یا فایل env. مدیریت کنید.',
+      'نصب آخرین نسخه کتابخانه‌های رسمی (OpenAI Python SDK v3+ و Google Gen AI SDK) و اتصال امن به سرور بدون نوشتن مستقیم کلید API در فایل‌های کد. همیشه کلیدها را از طریق متغیرهای محیطی سیستم یا فایل env. مدیریت کنید.',
     notes: [
-      'برای گوگل حتماً از بسته جدید google-genai استفاده کنید؛ بسته قدیمی google-generativeai منسوخ شده است.',
+      'برای گوگل حتماً از بسته رسمی و یکپارچه google-genai استفاده کنید (بسته قدیمی google-generativeai منسوخ شده است).',
       'تنظیم تایم‌اوت سراسری (timeout) در زمان ساخت کلاینت باعث می‌شود درخواست‌های معلق شبکه برنامه شما را قفل نکنند.',
     ],
     blocks: [
@@ -298,14 +300,15 @@ client = genai.Client(
     titleFa: 'تولید متن ساده',
     titleEn: 'Basic Text Prompt',
     summary:
-      'ارسال یک سؤال یا دستور متنی ساده و دریافت پاسخ مستقیم مدل. در OpenAI از متد مدرن responses.create (جایگزین جدید Chat Completions) و در گوگل از models.generate_content استفاده می‌شود.',
+      'ارسال یک سؤال یا دستور متنی ساده و دریافت پاسخ مستقیم مدل با مدل‌های روزمره سریع ۲۰۲۶. در OpenAI از متد مدرن responses.create و در گوگل از models.generate_content (یا Interactions API) استفاده می‌شود.',
     blocks: [
       {
         provider: 'openai',
         label: 'OpenAI Responses API',
+        sublabel: 'مدل سریع روزمره gpt-6.2-sol (یا gpt-6-luna برای حجم بالا)',
         language: 'python',
         code: `response = client.responses.create(
-    model="gpt-4.1-mini",
+    model="gpt-6.2-sol",
     input="تفاوت API و SDK را در دو جمله توضیح بده.",
 )
 print(response.output_text)`,
@@ -313,9 +316,10 @@ print(response.output_text)`,
       {
         provider: 'google',
         label: 'Google Gen AI SDK',
+        sublabel: 'مدل سریع روزمره gemini-4-hydrogen (یا gemini-3.8-flash)',
         language: 'python',
         code: `response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-4-hydrogen",
     contents="تفاوت API و SDK را در دو جمله توضیح بده.",
 )
 print(response.text)`,
@@ -332,7 +336,7 @@ print(response.text)`,
       'تعیین نقش تخصصی و لحن پاسخ‌دهی مدل (System Prompt)، کنترل میزان خلاقیت یا قطعیت پاسخ (Temperature) و محدود کردن حداکثر طول پاسخ برای مدیریت هزینه و زمان اجرا.',
     notes: [
       'در OpenAI Responses API حداقل مقدار مجاز برای max_output_tokens برابر ۱۶ توکن است؛ مقدار کمتر خطای 400 BadRequestError برمی‌گرداند.',
-      'در مدل‌های استدلالی (مانند o4-mini یا سری Gemini 2.5 با تفکر فعال)، ممکن است پارامتر temperature نادیده گرفته شود یا سقف max_output_tokens شامل توکن‌های تفکر داخلی نیز باشد.',
+      'در مدل‌های استدلالی (مانند gpt-6.2-astra و خانواده Gemini 4)، توکن‌های استدلال داخلی به عنوان توکن خروجی محاسبه می‌شوند؛ برای پاسخ‌های کوتاه سطح تفکر را روی low قرار دهید.',
     ],
     blocks: [
       {
@@ -340,7 +344,7 @@ print(response.text)`,
         label: 'OpenAI Responses API',
         language: 'python',
         code: `response = client.responses.create(
-    model="gpt-4.1-mini",
+    model="gpt-6.2-sol",
     instructions=(
         "You are a senior software engineer. "
         "Reply concisely and technically."
@@ -356,7 +360,7 @@ print(response.output_text)`,
         label: 'Google Gen AI SDK',
         language: 'python',
         code: `response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-4-hydrogen",
     contents="Why is parsing PDF layouts difficult?",
     config=types.GenerateContentConfig(
         system_instruction=(
@@ -381,8 +385,8 @@ print(response.text)`,
       'اطمینان از اینکه پاسخ مدل به دلیل پر شدن سقف max_output_tokens وسط جمله یا وسط ساختار JSON قطع نشده است، شمارش دقیق توکن‌ها پیش از ارسال درخواست، و ثبت تفکیک‌شده توکن‌های ورودی، خروجی، کش‌شده و استدلالی.',
     isExpanded: true,
     notes: [
-      'در Gemini 2.5، بودجه توکن‌های تفکر داخلی (thinking_budget) از همان سقف max_output_tokens کسر می‌شود؛ برای خروجی‌های بسیار کوتاه، thinking_budget=0 بگذارید.',
-      'در گوگل می‌توانید پیش از ارسال درخواست با client.models.count_tokens هزینه ورودی (حتی PDF و تصویر) را دقیق محاسبه کنید. در OpenAI معمولاً از کتابخانه محلی tiktoken برای تخمین پیش از ارسال استفاده می‌شود.',
+      'در مدل‌های استدلالی جدید (Gemini 4 و GPT-6.2)، بودجه توکن‌های تفکر داخلی از سقف خروجی کسر شده و به‌عنوان Output Token صورت‌حساب می‌شود؛ در کارهای کوتاه thinking_level="low" یا reasoning={"effort": "low"} تنظیم کنید.',
+      'در گوگل می‌توانید پیش از ارسال درخواست با client.models.count_tokens هزینه دقیق ورودی (متن، تصویر و PDF) را محاسبه کنید.',
     ],
     blocks: [
       {
@@ -391,9 +395,9 @@ print(response.text)`,
         sublabel: 'بررسی قطع‌شدگی + تفکیک کامل توکن‌ها',
         language: 'python',
         code: `response = client.responses.create(
-    model="gpt-4.1-mini",
+    model="gpt-6-luna",
     input="Write a 5-paragraph history of OCR systems.",
-    max_output_tokens=25,
+    max_output_tokens=40,
 )
 
 print("Status:", response.status)                # "completed" | "incomplete"
@@ -412,17 +416,16 @@ print("Reasoning tokens:", usage.output_tokens_details.reasoning_tokens)`,
         language: 'python',
         code: `# ۱) شمارش دقیق توکن‌ها پیش از ارسال درخواست (بدون هزینه تولید)
 prompt = "Write a 5-paragraph history of OCR systems."
-count = client.models.count_tokens(model="gemini-2.5-flash", contents=prompt)
+count = client.models.count_tokens(model="gemini-3.8-flash", contents=prompt)
 print("Estimated input tokens:", count.total_tokens)
 
-# ۲) ارسال درخواست و بررسی کامل بودن خروجی
+# ۲) ارسال درخواست با کمترین سطح تفکر برای جلوگیری از هدررفت سقف توکن
 response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-4-hydrogen",
     contents=prompt,
     config=types.GenerateContentConfig(
-        max_output_tokens=25,
-        # خاموش کردن تفکر داخلی تا کل ۲۵ توکن به متن قابل‌مشاهده اختصاص یابد
-        thinking_config=types.ThinkingConfig(thinking_budget=0),
+        max_output_tokens=40,
+        thinking_config=types.ThinkingConfig(thinking_level="low"),
     ),
 )
 
@@ -441,31 +444,36 @@ print("Cached tokens:", getattr(meta, "cached_content_token_count", 0))`,
     id: 'ch-5',
     number: 5,
     partId: 'part-1',
-    titleFa: 'لیست کردن مدل‌های در دسترس و راهنمای انتخاب مدل',
-    titleEn: 'Listing Available Models & Model Selection Guide',
+    titleFa: 'لیست کردن مدل‌های در دسترس و راهنمای انتخاب مدل‌های ۲۰۲۶',
+    titleEn: 'Listing Available Models & 2026 Model Selection Guide',
     summary:
-      'مشاهده شناسه دقیق مدل‌های فعال روی کلید API شما برای پیشگیری از خطای 404 Model Not Found و انتخاب سریع مدل متناسب با تعادل سرعت، هزینه و دقت استدلال.',
+      'مشاهده شناسه دقیق مدل‌های فعال روی کلید API شما برای پیشگیری از خطای 404 Model Not Found و انتخاب دقیق‌ترین مدل از نسل جدید ۲۰۲۶ متناسب با سرعت، بودجه و عمق استدلال.',
     isExpanded: true,
     miniTable: [
       {
-        feature: 'سریع و کم‌هزینه (روزمره، استخراج، چت)',
-        openai: 'gpt-4.1-mini / gpt-4o-mini',
-        google: 'gemini-2.5-flash / gemini-2.5-flash-lite',
+        feature: 'فوق‌سریع و بسیار اقتصادی (حجم بالا)',
+        openai: 'gpt-6-luna ($0.10 / $0.50)',
+        google: 'gemini-3.8-flash (رایگان / $0.75)',
       },
       {
-        feature: 'دقت بالا و چندوجهی پیچیده (PDF/تصویر)',
-        openai: 'gpt-4.1 / gpt-4o',
-        google: 'gemini-2.5-pro',
+        feature: 'روزمره متعادل، کدنویسی و ایجنت (پنجره ۱M)',
+        openai: 'gpt-6.2-sol ($2.00 / $10.00)',
+        google: 'gemini-4-hydrogen ($1.50 / $7.50)',
       },
       {
-        feature: 'استدلال عمیق (ریاضی، الگوریتم، معماری)',
-        openai: 'o3 / o4-mini (با پارامتر reasoning)',
-        google: 'gemini-2.5-pro / flash (با thinking_budget)',
+        feature: 'بینایی، OCR پیچیده و تحلیل PDF',
+        openai: 'gpt-6.1-terra ($1.00 / $5.00)',
+        google: 'gemini-4-neon ($3.00 / $15.00)',
       },
       {
-        feature: 'تولید بردار معنایی (RAG / Search)',
+        feature: 'استدلال مرزی، معماری و برنامه‌ریزی عمیق',
+        openai: 'gpt-6.2-astra ($8.00 / $40.00)',
+        google: 'gemini-4-carbon / argon ($2.00–$4.00)',
+      },
+      {
+        feature: 'تولید بردار معنایی (RAG متنی و چندوجهی)',
         openai: 'text-embedding-3-small / large',
-        google: 'gemini-embedding-001',
+        google: 'gemini-embedding-2 / 001',
       },
     ],
     blocks: [
@@ -481,7 +489,7 @@ print("Cached tokens:", getattr(meta, "cached_content_token_count", 0))`,
         label: 'Google Gen AI SDK',
         language: 'python',
         code: `for model in client.models.list():
-    print(model.name)  # مثلاً: models/gemini-2.5-flash`,
+    print(model.name)  # مثلاً: models/gemini-4-hydrogen`,
       },
     ],
   },
@@ -492,12 +500,12 @@ print("Cached tokens:", getattr(meta, "cached_content_token_count", 0))`,
     titleFa: 'ارسال تصویر به مدل چندوجهی (Vision / OCR)',
     titleEn: 'Image Understanding, OCR & Chart Analysis',
     summary:
-      'خواندن متن از صفحات اسکن‌شده، تحلیل نمودارها، استخراج جدول به فرمت Markdown یا پردازش اسکرین‌شات‌ها. در گوگل امکان ارسال مستقیم بایت خام (بدون سربار ۳۳ درصدی Base64) یا شیء PIL.Image نیز وجود دارد.',
+      'خواندن متن از صفحات اسکن‌شده، تحلیل نمودارها، استخراج جدول به فرمت Markdown یا پردازش اسکرین‌شات‌ها. در OpenAI مدل gpt-6.1-terra برای استدلال بصری بهینه شده است و در گوگل امکان ارسال مستقیم بایت خام (بدون سربار ۳۳ درصدی Base64) وجود دارد.',
     blocks: [
       {
         provider: 'openai',
         label: 'OpenAI Responses API',
-        sublabel: 'ارسال Base64 (یا لینک مستقیم HTTPS / file_id)',
+        sublabel: 'بهینه‌شده برای بینایی با gpt-6.1-terra',
         language: 'python',
         code: `import base64
 
@@ -505,7 +513,7 @@ with open("page.png", "rb") as f:
     b64_image = base64.standard_b64encode(f.read()).decode("utf-8")
 
 response = client.responses.create(
-    model="gpt-4.1",
+    model="gpt-6.1-terra",
     input=[
         {
             "role": "user",
@@ -528,14 +536,14 @@ print(response.output_text)`,
       {
         provider: 'google',
         label: 'Google Gen AI SDK',
-        sublabel: 'بایت خام (بدون سربار Base64) یا شیء PIL.Image',
+        sublabel: 'بایت خام (بدون سربار Base64) با gemini-4-neon یا hydrogen',
         language: 'python',
         code: `# روش ۱: ارسال مستقیم بایت خام (سریع و بدون افزایش حجم Base64)
 with open("page.png", "rb") as f:
     image_bytes = f.read()
 
 response = client.models.generate_content(
-    model="gemini-2.5-pro",
+    model="gemini-4-neon",
     contents=[
         types.Part.from_bytes(data=image_bytes, mime_type="image/png"),
         "Transcribe all text and tables into Markdown.",
@@ -547,7 +555,7 @@ print(response.text)
 # from PIL import Image
 # img = Image.open("page.png")
 # resp = client.models.generate_content(
-#     model="gemini-2.5-pro", contents=[img, "Describe this chart."]
+#     model="gemini-4-hydrogen", contents=[img, "Describe this chart."]
 # )`,
       },
     ],
@@ -562,7 +570,7 @@ print(response.text)
       'تحلیل کامل اسناد PDF شامل متن، جداول، نمودارها و صفحات اسکن‌شده بدون نیاز به تبدیل دستی صفحات به تصویر با ابزارهایی مانند pdf2image و poppler. برای فایل‌های بزرگ، هر دو پلتفرم Files API اختصاصی دارند.',
     isExpanded: true,
     notes: [
-      'در OpenAI برای PDFهای کوچک ارسال Base64 سریع است، اما برای فایل‌های حجیم یا اسنادی که چند بار تحلیل می‌شوند، ابتدا فایل را با client.files.create آپلود کنید و file_id را بفرستید.',
+      'در OpenAI برای PDFهای سبک ارسال Base64 سریع است، اما برای فایل‌های حجیم یا اسنادی که چند بار تحلیل می‌شوند، ابتدا فایل را با client.files.create آپلود کنید و file_id را بفرستید.',
       'در Google Gen AI برای PDF زیر ۲۰ مگابایت از Part.from_bytes و برای اسناد ۲۰ تا ۵۰ مگابایت (تا ۱٬۰۰۰ صفحه) از client.files.upload استفاده کرده و در پایان با finally فایل را پاک کنید.',
     ],
     blocks: [
@@ -578,7 +586,7 @@ with open("report.pdf", "rb") as f:
     b64_pdf = base64.standard_b64encode(f.read()).decode("utf-8")
 
 response = client.responses.create(
-    model="gpt-4.1",
+    model="gpt-6.1-terra",
     input=[
         {
             "role": "user",
@@ -605,7 +613,7 @@ with open("large_report.pdf", "rb") as f:
 
 try:
     resp_large = client.responses.create(
-        model="gpt-4.1",
+        model="gpt-6.2-sol",
         input=[
             {
                 "role": "user",
@@ -630,7 +638,7 @@ with open("report.pdf", "rb") as f:
     pdf_bytes = f.read()
 
 response = client.models.generate_content(
-    model="gemini-2.5-pro",
+    model="gemini-4-hydrogen",
     contents=[
         types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf"),
         "Extract key tables from this PDF page by page.",
@@ -642,7 +650,7 @@ print(response.text)
 uploaded = client.files.upload(file="large_report.pdf")
 try:
     resp_large = client.models.generate_content(
-        model="gemini-2.5-pro",
+        model="gemini-4-neon",
         contents=[uploaded, "Summarize all key operational findings."],
     )
     print(resp_large.text)
@@ -662,24 +670,24 @@ finally:
     isNew: true,
     notes: [
       'در Google Gen AI پس از آپلود فایل ویدیویی با client.files.upload، ممکن است پردازش فایل چند ثانیه طول بکشد؛ پیش از فراخوانی مدل، وضعیت file.state.name == "ACTIVE" را بررسی کنید.',
-      'در OpenAI برای رونویسی دقیق جلسات فارسی و انگلیسی، مدل‌های gpt-4o-transcribe یا gpt-4o-mini-transcribe بهترین دقت را ارائه می‌دهند و متن خروجی را می‌توان به Responses API سپرد.',
+      'در OpenAI مدل‌های قدیمی gpt-4o-transcribe و whisper-1 منسوخ شده‌اند (توقف فوریه ۲۰۲۷)؛ طبق مستندات رسمی، برای رونویسی فایل‌های ضبط‌شده از gpt-transcribe و برای جریان صوتی زنده (Realtime) از gpt-live-transcribe استفاده کنید.',
     ],
     blocks: [
       {
         provider: 'openai',
         label: 'OpenAI SDK (Audio + Responses)',
-        sublabel: 'رونویسی دقیق صوت و تحلیل ساختاریافته جلسه',
+        sublabel: 'رونویسی دقیق صوت با gpt-transcribe و تحلیل جلسه',
         language: 'python',
-        code: `# ۱) تبدیل صوت به متن با مدل‌های رونویسی مدرن OpenAI
+        code: `# ۱) تبدیل صوت به متن با مدل رسمی جدید OpenAI (جایگزین gpt-4o-transcribe)
 with open("meeting.mp3", "rb") as audio_file:
     transcript = client.audio.transcriptions.create(
-        model="gpt-4o-mini-transcribe",
+        model="gpt-transcribe",
         file=audio_file,
     )
 
 # ۲) ارسال متن رونویسی‌شده به Responses API برای خلاصه‌سازی
 summary = client.responses.create(
-    model="gpt-4.1-mini",
+    model="gpt-6.2-sol",
     instructions="Extract action items and decisions in Persian.",
     input=transcript.text,
 )
@@ -688,7 +696,7 @@ print(summary.output_text)`,
       {
         provider: 'google',
         label: 'Google Gen AI SDK',
-        sublabel: 'درک بومی صوت و ویدیو بدون نیاز به ابزار جداگانه',
+        sublabel: 'درک بومی صوت و ویدیو با gemini-4-hydrogen / 3.8-flash',
         language: 'python',
         code: `import time
 
@@ -697,7 +705,7 @@ with open("meeting.mp3", "rb") as f:
     audio_bytes = f.read()
 
 audio_resp = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-3.8-flash",
     contents=[
         types.Part.from_bytes(data=audio_bytes, mime_type="audio/mp3"),
         "جلسه را خلاصه کن و کارهای محول‌شده را با زمان (Timestamp) فهرست کن.",
@@ -713,7 +721,7 @@ try:
         video_file = client.files.get(name=video_file.name)
 
     video_resp = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-4-hydrogen",
         contents=[video_file, "مراحل کلیدی نمایش‌داده‌شده در این ویدیو چیست؟"],
     )
     print(video_resp.text)
@@ -755,7 +763,7 @@ class Invoice(BaseModel):
         sublabel: 'Structured Output با بررسی refusal',
         language: 'python',
         code: `response = client.responses.parse(
-    model="gpt-4.1-mini",
+    model="gpt-6.2-sol",
     input=(
         "Invoice INV-402 from ParsData Corp for $1250.50 "
         "covering Server and License."
@@ -775,7 +783,7 @@ print(invoice.invoice_id, invoice.total_amount)`,
         sublabel: 'Structured Output با response_schema',
         language: 'python',
         code: `response = client.models.generate_content(
-    model="gemini-2.5-flash",
+    model="gemini-4-hydrogen",
     contents=(
         "Invoice INV-402 from ParsData Corp for $1250.50 "
         "covering Server and License."
