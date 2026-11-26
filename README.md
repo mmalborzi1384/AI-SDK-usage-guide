@@ -1,11 +1,24 @@
-<div align="center">
+# راهنمای جامع و کاربردی LLM SDKs
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+مرجع فارسی، تعاملی و آماده چاپ PDF برای مقایسه و کار عملی با **OpenAI Responses API** (`openai`) و **Google Gen AI SDK** (`google-genai`) در ۲۲ فصل کامل.
 
-  <h1>Built with AI Studio</h2>
+## امکانات کلیدی
+- ۲۲ فصل کامل شامل چرخه کامل Function Calling، جستجوی وب با Citations، استدلال و خلاصه افکار، صوت و ویدیو، اجرای کد و URL Context، تولید Embeddings، کش کانتکست، Batch API و Retry هوشمند
+- سینتکس هایلایت پیشرفته پایتون و بش با شماره خط، کپی تک‌کلیک و تفکیک کامل پارامترها، متدها و کلاس‌ها
+- دارک مود و ۴ تم اختصاصی (جوهر و کاغذ، سپیا کتابخانه، کربن شب و نوردیک قطبی)
+- جستجوی فوری (`Ctrl+K` / `⌘K`)، نشان‌گذاری فصل‌ها، چک‌لیست تعاملی عملیاتی و حالت مقایسه کنار هم / تب موبایل
+- خروجی PDF استاندارد A4 با صفحه‌بندی فارسی و حفظ کامل ساختار کدها
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## اجرای محلی
+```bash
+npm install
+npm run dev
+```
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## انتشار روی GitHub Pages
+این مخزن کاملاً برای **GitHub Pages** پیکربندی شده است (`base: './'` در `vite.config.ts` و فایل `.github/workflows/deploy.yml`):
 
-</div>
+1. پروژه را روی شاخه `main` در یک ریپازیتوری گیت‌هاب Push کنید.
+2. در گیت‌هاب به مسیر **Settings → Pages** بروید.
+3. در بخش **Build and deployment** گزینه **Source** را روی **GitHub Actions** قرار دهید.
+4. پس از چند ثانیه سایت به‌صورت خودکار بیلد و منتشر می‌شود.

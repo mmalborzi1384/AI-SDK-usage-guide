@@ -1,0 +1,6 @@
+{
+  "name": "راهنمای جامع LLM SDKs",
+  "description": "مرجع کامل، مقایسه‌ای و آماده چاپ PDF برای کار با OpenAI Responses API و Google Gen AI SDK (google-genai) به زبان فارسی",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
